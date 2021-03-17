@@ -49,9 +49,9 @@ Copyright 2017 Linear Technology Corp. (LTC)
 #include <stdint.h>
 
 
-void cs_low(uint8_t pin);//name conflicts with linduino
+void spi_cs_low();//name conflicts with linduino
 
-void cs_high(uint8_t pin);
+void spi_cs_high();
 
 void delay_u(uint16_t micro);
 
@@ -77,5 +77,5 @@ void spi_write_read(uint8_t tx_Data[],//array of data to be written on SPI port
                     uint8_t rx_len //Option: number of bytes to be read from the SPI port
                    );
 
-uint8_t spi_read_byte(uint8_t tx_dat);//name conflicts with linduino also needs to take a byte as a parameter
+uint8_t spi_read_byte();//name conflicts with linduino also needs to take a byte as a parameter
 #endif

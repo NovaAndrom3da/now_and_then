@@ -68,12 +68,6 @@ void Error_Handler(void);
 #define A_Current__sigA3_GPIO_Port GPIOA
 #define SPI_slave_CS_Pin GPIO_PIN_4
 #define SPI_slave_CS_GPIO_Port GPIOA
-#define SPI_slave_clk_Pin GPIO_PIN_5
-#define SPI_slave_clk_GPIO_Port GPIOA
-#define SPI_slave_miso_Pin GPIO_PIN_6
-#define SPI_slave_miso_GPIO_Port GPIOA
-#define SPI_slave_mosi_Pin GPIO_PIN_7
-#define SPI_slave_mosi_GPIO_Port GPIOA
 #define D_Aux_HS_sig_Pin GPIO_PIN_0
 #define D_Aux_HS_sig_GPIO_Port GPIOB
 #define D_Aux_LS_sig_Pin GPIO_PIN_1
@@ -108,10 +102,6 @@ void Error_Handler(void);
 #define uart_tx_screen_GPIO_Port GPIOD
 #define IMD_data_Pin GPIO_PIN_3
 #define IMD_data_GPIO_Port GPIOB
-#define D_Final_Close_sig_Pin GPIO_PIN_4
-#define D_Final_Close_sig_GPIO_Port GPIOB
-#define D_Precharge_cmd_Pin GPIO_PIN_5
-#define D_Precharge_cmd_GPIO_Port GPIOB
 #define D_Final_Close_cmd_Pin GPIO_PIN_6
 #define D_Final_Close_cmd_GPIO_Port GPIOB
 #define D_charger_detect_sig_Pin GPIO_PIN_7

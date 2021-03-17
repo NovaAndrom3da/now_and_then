@@ -58,7 +58,7 @@
     Library for LTC6811-1 Multicell Battery Monitor
 */
 
-#include "stdint.h"
+#include <stdint.h>
 #include "LTC681x.h"
 #include "LTC6811.h"
 

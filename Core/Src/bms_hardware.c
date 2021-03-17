@@ -42,64 +42,57 @@ Copyright 2017 Linear Technology Corp. (LTC)
 */
 #include <stdint.h>
 #include "bms_hardware.h"
+#include "gpio.h"
+#include "spi.h"
+#include "cmsis_os.h"
 
-void cs_low(uint8_t pin)
-{
+void spi_cs_low() {
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_10, GPIO_PIN_RESET);
 }
 
-void cs_high(uint8_t pin)
-{
+void spi_cs_high() {
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_10, GPIO_PIN_SET);
 }
 
-void delay_u(uint16_t micro)
-{
+void delay_u(uint16_t micro) {
+    delay_m(1);
 }
 
-void delay_m(uint16_t milli)
-{
-}
-
-/*
-Writes an array of bytes out of the SPI port
-*/
-void spi_write_array(uint8_t len, // Option: Number of bytes to be written on the SPI port
-                     uint8_t data[] //Array of bytes to be written on the SPI port
-                    )
-{
-  for (uint8_t i = 0; i < len; i++)
-  {
-//    SPI.transfer((int8_t)data[i]);
-  }
+void delay_m(uint16_t milli) {
+    vTaskDelay(pdMS_TO_TICKS(milli));
 }
 
 /*
- Writes and read a set number of bytes using the SPI port.
+ * Writes an array of bytes out of the SPI port
+ * @param len Number of bytes to be written on the SPI port
+ * @param data Array of bytes to be written on the SPI port
+*/
+void spi_write_array(uint8_t len, uint8_t data[]) {
+    HAL_SPI_Transmit(&hspi1, data, len, 1);
+//    for (uint8_t i = 0; i < len; i++) {
 
+//    }
+}
+
+/*
+ * Writes and read a set number of bytes using the SPI port.
+ * @param tx_Data array of data to be written on SPI port
+ * @param tx_len length of the tx data array
+ * @param rx_data array that will store the data read by the SPI port
+ * @param rx_len number of bytes to be read from the SPI port
 */
 
-void spi_write_read(uint8_t tx_Data[],//array of data to be written on SPI port
-                    uint8_t tx_len, //length of the tx data arry
-                    uint8_t *rx_data,//Input: array that will store the data read by the SPI port
-                    uint8_t rx_len //Option: number of bytes to be read from the SPI port
-                   )
-{
-  for (uint8_t i = 0; i < tx_len; i++)
-  {
-//    SPI.transfer(tx_Data[i]);
-  }
+void spi_write_read(uint8_t tx_Data[], uint8_t tx_len, uint8_t *rx_data, uint8_t rx_len) {
+    spi_write_array(tx_len, tx_Data);
 
-  for (uint8_t i = 0; i < rx_len; i++)
-  {
-
-//    rx_data[i] = (uint8_t)SPI.transfer(0xFF);
-  }
+    for (uint8_t i = 0; i < rx_len; i++) {
+        rx_data[i] = spi_read_byte();
+    }
 
 }
 
-
-uint8_t spi_read_byte(uint8_t tx_dat)
-{
-  uint8_t data;
-//  data = (uint8_t)SPI.transfer(0xFF);
-  return(data);
+uint8_t spi_read_byte() {
+    uint8_t data;
+    HAL_SPI_Receive(&hspi1, &data, 1, 10000);
+    return (data);
 }
