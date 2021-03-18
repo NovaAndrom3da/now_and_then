@@ -76,8 +76,8 @@ void Error_Handler(void);
 #define D_Shutdown_Contactor_sig_GPIO_Port GPIOB
 #define IMD_fault_sig_Pin GPIO_PIN_10
 #define IMD_fault_sig_GPIO_Port GPIOB
-#define LD4__Green_Led_Pin GPIO_PIN_12
-#define LD4__Green_Led_GPIO_Port GPIOD
+#define LD4_Pin GPIO_PIN_12
+#define LD4_GPIO_Port GPIOD
 #define LD3_Pin GPIO_PIN_13
 #define LD3_GPIO_Port GPIOD
 #define LD5_Pin GPIO_PIN_14

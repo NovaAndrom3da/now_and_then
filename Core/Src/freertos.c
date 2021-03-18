@@ -62,6 +62,13 @@ const osThreadAttr_t ltc_test_attributes = {
   .priority = (osPriority_t) osPriorityLow,
   .stack_size = 128 * 4
 };
+/* Definitions for main */
+osThreadId_t mainHandle;
+const osThreadAttr_t main_attributes = {
+  .name = "main",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 256 * 4
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -70,6 +77,7 @@ const osThreadAttr_t ltc_test_attributes = {
 
 void StartDefaultTask(void *argument);
 extern void start_ltc_test(void *argument);
+extern void start_task_main(void *argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -106,6 +114,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of ltc_test */
   ltc_testHandle = osThreadNew(start_ltc_test, NULL, &ltc_test_attributes);
+
+  /* creation of main */
+  mainHandle = osThreadNew(start_task_main, NULL, &main_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
