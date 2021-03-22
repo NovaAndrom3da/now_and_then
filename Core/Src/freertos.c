@@ -52,22 +52,29 @@
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
 };
 /* Definitions for ltc_test */
 osThreadId_t ltc_testHandle;
 const osThreadAttr_t ltc_test_attributes = {
   .name = "ltc_test",
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
-  .stack_size = 128 * 4
 };
 /* Definitions for main */
 osThreadId_t mainHandle;
 const osThreadAttr_t main_attributes = {
   .name = "main",
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 256 * 4
+};
+/* Definitions for can_bus */
+osThreadId_t can_busHandle;
+const osThreadAttr_t can_bus_attributes = {
+  .name = "can_bus",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityHigh,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,6 +85,7 @@ const osThreadAttr_t main_attributes = {
 void StartDefaultTask(void *argument);
 extern void start_ltc_test(void *argument);
 extern void start_task_main(void *argument);
+extern void start_task_can_bus(void *argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -118,9 +126,16 @@ void MX_FREERTOS_Init(void) {
   /* creation of main */
   mainHandle = osThreadNew(start_task_main, NULL, &main_attributes);
 
+  /* creation of can_bus */
+  can_busHandle = osThreadNew(start_task_can_bus, NULL, &can_bus_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
 
 }
 

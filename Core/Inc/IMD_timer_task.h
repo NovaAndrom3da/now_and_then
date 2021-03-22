@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include "FreeRTOS.h"
 #include "queue.h"
+#include "stm32f4xx_hal_tim.h"
 
 typedef struct {
     uint32_t frequency;
