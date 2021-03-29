@@ -30,8 +30,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "IMD_timer_task.h"
-#include "can_bus_task.h"
+#include "task/task_imd_timer.h"
+#include "task/task_can_bus.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

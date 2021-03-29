@@ -2,10 +2,10 @@
 // Created by gijsl on 3/17/2021.
 //
 
-#include "bms_main.h"
+#include "task/task_main.h"
 #include "stm32f4xx_hal.h"
-#include "can_bus_task.h"
-#include "IMD_timer_task.h"
+#include "task/task_can_bus.h"
+#include "task/task_imd_timer.h"
 
 uint32_t counter = 0;
 

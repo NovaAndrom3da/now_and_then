@@ -55,24 +55,24 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for ltc_test */
-osThreadId_t ltc_testHandle;
-const osThreadAttr_t ltc_test_attributes = {
-  .name = "ltc_test",
+/* Definitions for task_ltc */
+osThreadId_t task_ltcHandle;
+const osThreadAttr_t task_ltc_attributes = {
+  .name = "task_ltc",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
-/* Definitions for main */
-osThreadId_t mainHandle;
-const osThreadAttr_t main_attributes = {
-  .name = "main",
+/* Definitions for task_main */
+osThreadId_t task_mainHandle;
+const osThreadAttr_t task_main_attributes = {
+  .name = "task_main",
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for can_bus */
-osThreadId_t can_busHandle;
-const osThreadAttr_t can_bus_attributes = {
-  .name = "can_bus",
+/* Definitions for task_can_bus */
+osThreadId_t task_can_busHandle;
+const osThreadAttr_t task_can_bus_attributes = {
+  .name = "task_can_bus",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
@@ -83,7 +83,7 @@ const osThreadAttr_t can_bus_attributes = {
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
-extern void start_ltc_test(void *argument);
+extern void start_task_ltc(void *argument);
 extern void start_task_main(void *argument);
 extern void start_task_can_bus(void *argument);
 
@@ -120,14 +120,14 @@ void MX_FREERTOS_Init(void) {
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
-  /* creation of ltc_test */
-  ltc_testHandle = osThreadNew(start_ltc_test, NULL, &ltc_test_attributes);
+  /* creation of task_ltc */
+  task_ltcHandle = osThreadNew(start_task_ltc, NULL, &task_ltc_attributes);
 
-  /* creation of main */
-  mainHandle = osThreadNew(start_task_main, NULL, &main_attributes);
+  /* creation of task_main */
+  task_mainHandle = osThreadNew(start_task_main, NULL, &task_main_attributes);
 
-  /* creation of can_bus */
-  can_busHandle = osThreadNew(start_task_can_bus, NULL, &can_bus_attributes);
+  /* creation of task_can_bus */
+  task_can_busHandle = osThreadNew(start_task_can_bus, NULL, &task_can_bus_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -154,7 +154,7 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    osDelay(UINT32_MAX);
   }
   /* USER CODE END StartDefaultTask */
 }

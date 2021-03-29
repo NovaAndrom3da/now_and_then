@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
-#include "ltc_task.h"
+#include "task/task_ltc.h"
 #include "util.h"
 #include "main.h"
 #include "spi.h"

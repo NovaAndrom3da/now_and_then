@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "can.h"
 #include "stm32f4xx_hal_can.h"
-#include "can_bus_task.h"
+#include "task/task_can_bus.h"
 
 QueueHandle_t CAN_tx_Q;
 HAL_StatusTypeDef stat = 0;
