@@ -6,7 +6,7 @@
 #ifndef NOW_AND_THEN_LTC_TASK_H
 #define NOW_AND_THEN_LTC_TASK_H
 
-_Noreturn void start_ltc_test(void *argument);
+_Noreturn void start_task_ltc(void *argument);
 
 #define BYTES_PER_REGISTER  6
 

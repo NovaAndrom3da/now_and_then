@@ -36,7 +36,7 @@ void send_cmd(uint16_t cmd) {
     HAL_SPI_Transmit(&hspi1, temp_pec_8 + 1, 1, 100);
 }
 
-_Noreturn void start_ltc_test(void *argument) {
+_Noreturn void start_task_ltc(void *argument) {
 
     uint8_t data[8] = {0};
     uint16_t test_pec;
