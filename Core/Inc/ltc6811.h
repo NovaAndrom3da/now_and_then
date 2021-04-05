@@ -11,6 +11,10 @@ void cs_high(void);
 
 void send_cmd(uint16_t cmd);
 
+bool read_data(uint8_t* data);
+
+bool read_cell_volts(uint16_t* data);
+
 #define BYTES_PER_REGISTER  6
 #define COMMAND_WRCFGA              0b00000000001
 #define COMMAND_WRCFGB              0b00000100100
