@@ -15,7 +15,7 @@ _Noreturn void start_task_can_bus(void *argument) {
     HAL_CAN_Start(&hcan1);
     while (1) {
         if (uxQueueMessagesWaiting(CAN_tx_Q) > 0 && HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) > 0) {
-            CAN_tx_request req = {0};
+            CAN_tx_request_t req = {0};
 
             xQueueReceive(CAN_tx_Q, &req, 10);
             stat = HAL_CAN_AddTxMessage(&hcan1, &req.header, (uint8_t *) &req.data, &mailbox);
@@ -25,11 +25,11 @@ _Noreturn void start_task_can_bus(void *argument) {
 }
 
 void setup_can_bus_task(void) {
-    CAN_tx_Q = xQueueCreate(50, sizeof(CAN_tx_request));
+    CAN_tx_Q = xQueueCreate(50, sizeof(CAN_tx_request_t));
 }
 
 BaseType_t send_can_msg(uint32_t msg_id, void *data, uint8_t data_len) {
-    CAN_tx_request req = {0};
+    CAN_tx_request_t req = {0};
     req.header.ExtId = msg_id;
     req.header.IDE = CAN_ID_EXT;
     req.header.RTR = CAN_RTR_DATA;
@@ -41,7 +41,7 @@ BaseType_t send_can_msg(uint32_t msg_id, void *data, uint8_t data_len) {
 
 //void TxMailboxCompleteCallback(CAN_HandleTypeDef *hcan) {
 //    if (uxQueueMessagesWaitingFromISR(CAN_tx_Q) > 0) {
-//        CAN_tx_request req = {0};
+//        CAN_tx_request_t req = {0};
 //        uint32_t mailbox = 0;
 //        xQueueReceiveFromISR(CAN_tx_Q, &req, NULL);
 //        HAL_CAN_AddTxMessage(hcan, &req.header, (uint8_t *) &req.data, &mailbox);

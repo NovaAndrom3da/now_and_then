@@ -19,7 +19,7 @@ BaseType_t send_can_msg(uint32_t msg_id, void* data, uint8_t data_len);
 typedef struct {
     CAN_TxHeaderTypeDef header;
     uint64_t data;
-} CAN_tx_request;
+} CAN_tx_request_t;
 
 extern QueueHandle_t CAN_tx_Q;
 
