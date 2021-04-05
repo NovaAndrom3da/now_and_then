@@ -2,14 +2,31 @@
 // Created by gijsl on 3/21/2021.
 //
 
-#include "util.h"
 #include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
+#include "util.h"
 
 void delay_microseconds(uint32_t u_sec) {
+    taskENTER_CRITICAL();
+
     uint32_t cycles = u_sec * 12;
     for (int i = 0; i < cycles; i++) {
         __NOP();
     }
+
+    taskEXIT_CRITICAL();
+}
+
+void delay_microseconds_ISR(uint32_t u_sec) {
+    UBaseType_t uxSavedInterruptStatus;
+    uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
+
+    uint32_t cycles = u_sec * 12;
+    for (int i = 0; i < cycles; i++) {
+        __NOP();
+    }
+
+    taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
 }
 
 const uint16_t crc15Table[256] =

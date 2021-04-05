@@ -1,4 +1,3 @@
-#include <argz.h>
 //
 // Created by gijsl on 3/15/2021.
 //
@@ -10,31 +9,16 @@
 #include "util.h"
 #include "main.h"
 #include "spi.h"
+#include "ltc6811.h"
 
-void cs_low(void) {
-    HAL_GPIO_WritePin(spi_cs_temp_GPIO_Port, spi_cs_temp_Pin, GPIO_PIN_RESET);
+QueueHandle_t ltc_spi_tx_Q;
+QueueHandle_t ltc_spi_rx_Q;
+
+void task_ltc_setup(void) {
+    ltc_spi_tx_Q = xQueueCreate(1, sizeof(ltc_spi_tx_request_t));
+    ltc_spi_rx_Q = xQueueCreate(1, sizeof(ltc_spi_rx_t));
 }
 
-void cs_high(void) {
-    HAL_GPIO_WritePin(spi_cs_temp_GPIO_Port, spi_cs_temp_Pin, GPIO_PIN_SET);
-}
-
-
-void send_cmd(uint16_t cmd) {
-    uint8_t temp[2];
-    temp[0] = cmd >> 8;
-    temp[1] = cmd & 0x00FF;
-    uint16_t temp_pec = pec15(temp, 2);
-
-    uint8_t temp_pec_8[2];
-    temp_pec_8[0] = temp_pec >> 8;
-    temp_pec_8[1] = temp_pec & 0x00FF;
-
-    HAL_SPI_Transmit(&hspi1, temp, 1, 100);
-    HAL_SPI_Transmit(&hspi1, temp + 1, 1, 100);
-    HAL_SPI_Transmit(&hspi1, temp_pec_8, 1, 100);
-    HAL_SPI_Transmit(&hspi1, temp_pec_8 + 1, 1, 100);
-}
 
 _Noreturn void start_task_ltc(void *argument) {
 
