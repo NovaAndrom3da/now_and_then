@@ -11,9 +11,17 @@ void cs_high(void);
 
 void send_cmd(uint16_t cmd);
 
+void write_data(uint16_t cmd, uint8_t data[8]);
+
 bool read_data(uint8_t* data);
 
 bool read_cell_volts(uint16_t* data);
+
+bool read_temps(uint16_t* data);
+
+void make_comm_reg_bytes(uint8_t mux_state, uint8_t led_state, uint8_t out[8]);
+
+void set_mux_cmd(uint8_t mux_state);
 
 #define BYTES_PER_REGISTER  6
 #define COMMAND_WRCFGA              0b00000000001
@@ -84,7 +92,7 @@ bool read_cell_volts(uint16_t* data);
 #define ICOM_READ_I2C_SDA_LOW       (0b0000)
 #define ICOM_READ_I2C_SDA_HIGH      (0b0111)
 #define FCOM_WRITE_I2C_MASTER_ACK   (0b0000)
-#define FCOM_WRITE_I2C_MASTER_NAK   (0b1000)
+#define FCOM_WRITE_I2C_MASTER_NACK   (0b1000)
 #define FCOM_WRITE_I2C_MASTER_NACK_STOP (0b1001)
 #define FCOM_READ_I2C_SLAVE_ACK     (0b0111)
 #define FCOM_READ_I2C_SLAVE_NAK     (0b1111)

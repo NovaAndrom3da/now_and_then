@@ -33,17 +33,31 @@ void send_cmd(uint16_t cmd) {
     HAL_SPI_Transmit(&hspi1, spi_cmd, 4, 100);
 }
 
-void write_data(uint16_t cmd, uint8_t data[]) {
+void write_data(uint16_t cmd, uint8_t data[8]) {
+    uint16_t temp_pec = pec15(data, 6);
+    data[6] = temp_pec >> 8;
+    data[7] = temp_pec & 0x00FF;
 
+    send_cmd(cmd);
+    HAL_SPI_Transmit(&hspi1, data, 8, 100);
 }
 
-uint8_t dummy[8] = {0x69, 0x42, 0x13, 0x23, 0x37, 0x73, 0x55, 0x68};
-
+// 8 bytes of trash to pump out to make clock cycles for reading
+uint8_t dummy[8] = {0x4C, 0x6F, 0x72, 0x61, 0x69, 0x6E, 0x65, 0x21};
+uint32_t good = 0;
+uint32_t bad = 0;
 bool read_data(uint8_t* data) {
     HAL_SPI_TransmitReceive(&hspi1, dummy, data, 8, 100);
     uint16_t received_pec = (data[7] & 0xff) + (data[6] << 8);
 
-    return received_pec == pec15(data, 6);
+    bool temp = received_pec == pec15(data, 6);
+
+    if (temp) {
+        good++;
+    } else {
+        bad++;
+    }
+    return temp;
 }
 
 bool read_cell_volts(uint16_t* data) {
@@ -99,4 +113,61 @@ bool read_cell_volts(uint16_t* data) {
     }
 
     return success;
+}
+
+bool read_temps(uint16_t* data) {
+    bool success = true;
+    uint8_t data_internal[8];
+
+    cs_low();
+    send_cmd(COMMAND_RDAUXA);
+    delay_microseconds(100);
+    success &= read_data(data_internal);
+    cs_high();
+
+    if (success) {
+        data[0] = (data_internal[0] & 0xff) + (data_internal[1] << 8);
+        data[1] = (data_internal[2] & 0xff) + (data_internal[3] << 8);
+    }
+
+    return success;
+}
+
+void make_comm_reg_bytes(uint8_t mux_state, uint8_t led_state, uint8_t out[8])
+{
+    uint8_t mux_bits = 0b0000000000000001 << (mux_state - 1);
+    out[0] = 0x80 + mux_bits;
+    out[1] = (led_state << 4) + 0x09;
+    out[2] = 0xF0;
+    out[3] = 0x09;
+    out[4] = 0xF0;
+    out[5] = 0x09;
+
+    uint16_t pec = pec15(out, 6);
+
+    out[6] = pec >> 8;
+    out[7] = pec & 0xFF;
+}
+
+uint8_t more_trash[9] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
+void set_mux_cmd(uint8_t mux_state)
+{
+    uint8_t data[8] = {0};
+    make_comm_reg_bytes(mux_state, 0b0, data);
+
+    cs_low();
+
+    send_cmd(COMMAND_WRCOMM);
+    HAL_SPI_Transmit(&hspi1, data, 8, 100);
+
+    cs_high();
+
+    delay_microseconds(10);
+
+    cs_low();
+
+    send_cmd(COMMAND_STCOMM);
+    HAL_SPI_Transmit(&hspi1, more_trash, 3, 100);
+
+    cs_high();
 }

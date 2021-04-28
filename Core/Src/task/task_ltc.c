@@ -10,6 +10,7 @@
 #include "main.h"
 #include "spi.h"
 #include "ltc6811.h"
+#include "ltc6811_config_register.h"
 
 QueueHandle_t ltc_spi_tx_Q;
 QueueHandle_t ltc_spi_rx_Q;
@@ -19,64 +20,63 @@ void task_ltc_setup(void) {
     ltc_spi_rx_Q = xQueueCreate(1, sizeof(ltc_spi_rx_t));
 }
 
-
 _Noreturn void start_task_ltc(void *argument) {
 
 //    uint8_t data[8] = {0};
 //    uint16_t test_pec;
 //    uint16_t volt1, volt2, volt3;
 
+
+
     uint16_t volts[12];
+    uint16_t temps[2];
+
+    uint8_t config[8] = {CFGR0, CFGR1, CFGR2, CFGR3, CFGR4, CFGR5, 0, 0};
+
+    uint8_t mux_bytes[8] = { 0 };
 
     while (1) {
         taskENTER_CRITICAL();
-
 
 
         cs_low();
         delay_microseconds(240);
         cs_high();
 
-
-
         delay_microseconds(100);
-
-
-
-
-        cs_low();
-        send_cmd(
-                COMMAND_ADCV_MD_DCP_CH | MD_7KHZ_NORMAL_3KHZ_MODE
-                | DCP_DISCHARGE_NOT_PERMITTED | CH_ALL_CELLS);
-        cs_high();
-
-
-        delay_microseconds(100);
-
-        bool good = read_cell_volts(volts);
 
 //        cs_low();
-//        send_cmd(COMMAND_RDCVA);
-//        delay_microseconds(10);
-//        bool success = read_data(data);
+//        write_data(COMMAND_WRCFGA, config);
+//        cs_high();
+
+//        delay_microseconds(100);
+
+        set_mux_cmd(3);
+
+//        delay_microseconds(100);
+
+
+//        cs_low();
+//        send_cmd(COMMAND_ADCV_MD_DCP_CH | MD_27HKHZ_FAST_14KHZ_MODE
+//                | DCP_DISCHARGE_NOT_PERMITTED | CH_ALL_CELLS);
 //        cs_high();
 //
-//        if (success) {
-//            volt1 = (data[0] & 0xff) + (data[1] << 8);
-//            volt2 = (data[2] & 0xff) + (data[3] << 8);
-//            volt3 = (data[4] & 0xff) + (data[5] << 8);
-//        } else {
-//            volt1 = 6969;
-//            volt2 = 420;
-//            volt3 = 123;
-//        }
+//        delay_microseconds(200);
+//
+//        bool good = read_cell_volts(volts);
+//
+//        delay_microseconds(10);
 
+        cs_low();
+        send_cmd(COMMAND_ADAX_MD_CHG | MD_27HKHZ_FAST_14KHZ_MODE | DCP_DISCHARGE_NOT_PERMITTED | CHG_GPIO_ALL);
+        cs_high();
 
+        delay_microseconds(3000);
 
-
+        bool goodagain = read_temps(temps);
 
         taskEXIT_CRITICAL();
 
-        vTaskDelay(10);
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
