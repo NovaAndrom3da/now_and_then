@@ -9,7 +9,7 @@
 void delay_microseconds(uint32_t u_sec) {
     taskENTER_CRITICAL();
 
-    uint32_t cycles = u_sec * 12;
+    uint32_t cycles = u_sec * 5;
     for (int i = 0; i < cycles; i++) {
         __NOP();
     }
