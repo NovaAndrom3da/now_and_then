@@ -135,8 +135,7 @@ bool read_temps(uint16_t* data) {
 
 void make_comm_reg_bytes(uint8_t mux_state, uint8_t led_state, uint8_t out[8])
 {
-    uint8_t mux_bits = 0b0000000000000001 << (mux_state - 1);
-    out[0] = 0x80 + mux_bits;
+    out[0] = 0x80 + mux_state;
     out[1] = (led_state << 4) + 0x09;
     out[2] = 0xF0;
     out[3] = 0x09;
@@ -162,7 +161,7 @@ void set_mux_cmd(uint8_t mux_state)
 
     cs_high();
 
-    delay_microseconds(10);
+    delay_microseconds(100);
 
     cs_low();
 

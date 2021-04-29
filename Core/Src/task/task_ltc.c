@@ -20,20 +20,39 @@ void task_ltc_setup(void) {
     ltc_spi_rx_Q = xQueueCreate(1, sizeof(ltc_spi_rx_t));
 }
 
+float temp_conversion(uint16_t raw) {
+    return ((raw / 10.0f) - 400.0f) / 19.5f;
+}
+
 _Noreturn void start_task_ltc(void *argument) {
-
-//    uint8_t data[8] = {0};
-//    uint16_t test_pec;
-//    uint16_t volt1, volt2, volt3;
-
-
-
+    uint8_t mux_state = 0;
+    uint16_t temp[2];
     uint16_t volts[12];
-    uint16_t temps[2];
+    float temperature[32];
 
     uint8_t config[8] = {CFGR0, CFGR1, CFGR2, CFGR3, CFGR4, CFGR5, 0, 0};
 
-    uint8_t mux_bytes[8] = { 0 };
+    uint8_t real_mux_states[16] = {
+            0b0000,
+            0b1000,
+            0b0100,
+            0b1100,
+            0b0010,
+            0b1010,
+            0b0110,
+            0b1110,
+            0b0001,
+            0b1001,
+            0b0101,
+            0b1101,
+            0b0011,
+            0b1011,
+            0b0111,
+            0b1111
+    };
+
+    set_mux_cmd(mux_state);
+
 
     while (1) {
         taskENTER_CRITICAL();
@@ -51,11 +70,6 @@ _Noreturn void start_task_ltc(void *argument) {
 
 //        delay_microseconds(100);
 
-        set_mux_cmd(3);
-
-//        delay_microseconds(100);
-
-
 //        cs_low();
 //        send_cmd(COMMAND_ADCV_MD_DCP_CH | MD_27HKHZ_FAST_14KHZ_MODE
 //                | DCP_DISCHARGE_NOT_PERMITTED | CH_ALL_CELLS);
@@ -67,13 +81,26 @@ _Noreturn void start_task_ltc(void *argument) {
 //
 //        delay_microseconds(10);
 
+
         cs_low();
         send_cmd(COMMAND_ADAX_MD_CHG | MD_27HKHZ_FAST_14KHZ_MODE | DCP_DISCHARGE_NOT_PERMITTED | CHG_GPIO_ALL);
         cs_high();
 
-        delay_microseconds(3000);
+        delay_microseconds(2000);
 
-        bool goodagain = read_temps(temps);
+        bool goodagain = read_temps(temp);
+
+        if (goodagain) {
+            temperature[mux_state] = temp_conversion(temp[0]);
+            temperature[mux_state + 16] = temp_conversion(temp[1]);
+        }
+
+        mux_state++;
+        if (mux_state >= 16) {
+            mux_state = 0;
+        }
+
+        set_mux_cmd(real_mux_states[mux_state]);
 
         taskEXIT_CRITICAL();
 
