@@ -18,6 +18,10 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include <stdbool.h>
+#include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
+#include "main.h"
 #include "spi.h"
 
 /* USER CODE BEGIN 0 */
@@ -132,6 +136,13 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
 }
 
 /* USER CODE BEGIN 1 */
+void cs_low(void) {
+    HAL_GPIO_WritePin(spi_cs_temp_GPIO_Port, spi_cs_temp_Pin, GPIO_PIN_RESET);
+}
+
+void cs_high(void) {
+    HAL_GPIO_WritePin(spi_cs_temp_GPIO_Port, spi_cs_temp_Pin, GPIO_PIN_SET);
+}
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

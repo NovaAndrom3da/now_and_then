@@ -5,21 +5,17 @@
 #include "spi.h"
 #include "main.h"
 #include "util.h"
-#include "task/task_ltc.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
-#include <stdbool.h>
 #include "ltc6811.h"
 
-void cs_low(void) {
-    HAL_GPIO_WritePin(spi_cs_temp_GPIO_Port, spi_cs_temp_Pin, GPIO_PIN_RESET);
-}
+uint32_t PEC_match_count = 0;
+uint32_t PEC_error_count = 0;
 
-void cs_high(void) {
-    HAL_GPIO_WritePin(spi_cs_temp_GPIO_Port, spi_cs_temp_Pin, GPIO_PIN_SET);
-}
+// 8 bytes of trash to pump out to make clock cycles for reading
+uint8_t dummy[8] = {0x4C, 0x6F, 0x72, 0x61, 0x69, 0x6E, 0x65, 0x21};
 
-void send_cmd(uint16_t cmd) {
+void cmd_68(uint16_t cmd) {
     uint8_t spi_cmd[4];
 
     spi_cmd[0] = cmd >> 8;
@@ -33,65 +29,72 @@ void send_cmd(uint16_t cmd) {
     HAL_SPI_Transmit(&hspi1, spi_cmd, 4, 100);
 }
 
-void write_data(uint16_t cmd, uint8_t data[8]) {
-    uint16_t temp_pec = pec15(data, 6);
-    data[6] = temp_pec >> 8;
-    data[7] = temp_pec & 0x00FF;
+void write_68(uint16_t cmd, uint8_t *data, uint8_t data_len) {
+    cmd_68(cmd);
 
-    send_cmd(cmd);
-    HAL_SPI_Transmit(&hspi1, data, 8, 100);
+    if (data_len > 0) {
+        uint16_t temp_pec = pec15(data, 6);
+        uint8_t pec[2];
+        pec[0] = temp_pec >> 8;
+        pec[1] = temp_pec & 0x00FF;
+
+        HAL_SPI_Transmit(&hspi1, data, data_len, 100);
+        HAL_SPI_Transmit(&hspi1, pec, 2, 100);
+    }
 }
 
-// 8 bytes of trash to pump out to make clock cycles for reading
-uint8_t dummy[8] = {0x4C, 0x6F, 0x72, 0x61, 0x69, 0x6E, 0x65, 0x21};
-uint32_t good = 0;
-uint32_t bad = 0;
-bool read_data(uint8_t* data) {
+void clock_68(uint16_t cmd, uint8_t len) {
+    cmd_68(cmd);
+
+    HAL_SPI_Transmit(&hspi1, dummy, len, 100);
+}
+
+bool read_68(uint8_t *data) {
     HAL_SPI_TransmitReceive(&hspi1, dummy, data, 8, 100);
     uint16_t received_pec = (data[7] & 0xff) + (data[6] << 8);
 
-    bool temp = received_pec == pec15(data, 6);
-
-    if (temp) {
-        good++;
+    if (received_pec == pec15(data, 6)) {
+        PEC_match_count++;
+        return true;
     } else {
-        bad++;
+        PEC_error_count++;
+        return false;
     }
-    return temp;
 }
 
-bool read_cell_volts(uint16_t* data) {
+
+bool read_cell_volts(uint16_t *data) {
     bool success = true;
     uint8_t data_internal[32];
 
     cs_low();
-    send_cmd(COMMAND_RDCVA);
+    cmd_68(COMMAND_RDCVA);
     delay_microseconds(10);
-    success &= read_data(data_internal);
+    success &= read_68(data_internal);
     cs_high();
 
     delay_microseconds(10);
 
     cs_low();
-    send_cmd(COMMAND_RDCVB);
+    cmd_68(COMMAND_RDCVB);
     delay_microseconds(10);
-    success &= read_data(data_internal + 8);
+    success &= read_68(data_internal + 8);
     cs_high();
 
     delay_microseconds(10);
 
     cs_low();
-    send_cmd(COMMAND_RDCVC);
+    cmd_68(COMMAND_RDCVC);
     delay_microseconds(10);
-    success &= read_data(data_internal + 16);
+    success &= read_68(data_internal + 16);
     cs_high();
 
     delay_microseconds(10);
 
     cs_low();
-    send_cmd(COMMAND_RDCVD);
+    cmd_68(COMMAND_RDCVD);
     delay_microseconds(10);
-    success &= read_data(data_internal + 24);
+    success &= read_68(data_internal + 24);
     cs_high();
 
     if (success) {
@@ -115,14 +118,14 @@ bool read_cell_volts(uint16_t* data) {
     return success;
 }
 
-bool read_temps(uint16_t* data) {
+bool read_temps(uint16_t *data) {
     bool success = true;
     uint8_t data_internal[8];
 
     cs_low();
-    send_cmd(COMMAND_RDAUXA);
+    cmd_68(COMMAND_RDAUXA);
     delay_microseconds(100);
-    success &= read_data(data_internal);
+    success &= read_68(data_internal);
     cs_high();
 
     if (success) {
@@ -133,8 +136,7 @@ bool read_temps(uint16_t* data) {
     return success;
 }
 
-void make_comm_reg_bytes(uint8_t mux_state, uint8_t led_state, uint8_t out[8])
-{
+void make_comm_reg_bytes(uint8_t mux_state, uint8_t led_state, uint8_t out[8]) {
     out[0] = 0x80 + mux_state;
     out[1] = (led_state << 4) + 0x09;
     out[2] = 0xF0;
@@ -148,25 +150,21 @@ void make_comm_reg_bytes(uint8_t mux_state, uint8_t led_state, uint8_t out[8])
     out[7] = pec & 0xFF;
 }
 
-uint8_t more_trash[9] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
-void set_mux_cmd(uint8_t mux_state)
-{
+void set_mux_cmd(uint8_t mux_state) {
     uint8_t data[8] = {0};
     make_comm_reg_bytes(mux_state, 0b0, data);
 
+    taskENTER_CRITICAL();
+
     cs_low();
-
-    send_cmd(COMMAND_WRCOMM);
-    HAL_SPI_Transmit(&hspi1, data, 8, 100);
-
+    write_68(COMMAND_WRCOMM, data, 6);
     cs_high();
 
     delay_microseconds(100);
 
     cs_low();
-
-    send_cmd(COMMAND_STCOMM);
-    HAL_SPI_Transmit(&hspi1, more_trash, 3, 100);
-
+    clock_68(COMMAND_STCOMM, 3);
     cs_high();
+
+    taskEXIT_CRITICAL();
 }

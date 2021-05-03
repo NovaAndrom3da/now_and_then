@@ -5,15 +5,37 @@
 #ifndef NOW_AND_THEN_LTC6811_H
 #define NOW_AND_THEN_LTC6811_H
 
-void cs_low(void);
+#include <stdint.h>
+#include <stdbool.h>
 
-void cs_high(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void send_cmd(uint16_t cmd);
+/*
+ * This struct contains raw bits to/from the registers
+ */
+typedef struct {
+    uint8_t CFGR[6];
+    uint8_t CVAR[6];
+    uint8_t CVBR[6];
+    uint8_t CVCR[6];
+    uint8_t CVDR[6];
+    uint8_t AVAR[6];
+    uint8_t AVBR[6];
+    uint8_t STAR[6];
+    uint8_t STBR[6];
+    uint8_t COMM[6];
+    uint8_t PWM[6];
+} ltc68_reg_t;
 
-void write_data(uint16_t cmd, uint8_t data[8]);
+void cmd_68(uint16_t cmd);
 
-bool read_data(uint8_t* data);
+void write_68(uint16_t cmd, uint8_t *data, uint8_t data_len);
+
+void clock_68(uint16_t cmd, uint8_t len);
+
+bool read_68(uint8_t *data);
 
 bool read_cell_volts(uint16_t* data);
 
@@ -96,5 +118,9 @@ void set_mux_cmd(uint8_t mux_state);
 #define FCOM_WRITE_I2C_MASTER_NACK_STOP (0b1001)
 #define FCOM_READ_I2C_SLAVE_ACK     (0b0111)
 #define FCOM_READ_I2C_SLAVE_NAK     (0b1111)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //NOW_AND_THEN_LTC6811_H

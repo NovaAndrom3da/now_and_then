@@ -5,7 +5,6 @@
 #ifndef NOW_AND_THEN_LTC_TASK_H
 #define NOW_AND_THEN_LTC_TASK_H
 
-#include "task_screen_uart.h"
 #include "FreeRTOS.h"
 #include "queue.h"
 
@@ -18,7 +17,8 @@
 
 void task_ltc_setup(void);
 
-_Noreturn void start_task_ltc(void *argument);
+//void start_task_ltc(void *argument);
+extern "C" [[noreturn]] void start_task_ltc(void *argument);
 
 typedef struct {
     void * placeholder;
