@@ -3,7 +3,7 @@
 //
 
 #include <ltc6811_config_register.h>
-#include <string.h>
+#include <cstring>
 #include "segment_board.h"
 
 SegmentBoard::SegmentBoard() {
@@ -14,8 +14,8 @@ SegmentBoard::SegmentBoard() {
     registers.CFGR[4] = CFGR4;
     registers.CFGR[5] = CFGR5;
 
-    registers.COMM[0] = 0x80;
-    registers.COMM[1] = 0b11100000 + 0x09;
+    registers.COMM[0] = 0x80; //default to mux state 0
+    registers.COMM[1] = 0b11100000 + 0x09; //default to all LED's on
     registers.COMM[2] = 0xF0;
     registers.COMM[3] = 0x09;
     registers.COMM[4] = 0xF0;
@@ -30,7 +30,7 @@ void SegmentBoard::set_leds(uint8_t state) {
 
 void SegmentBoard::set_mux(uint8_t state) {
     mux_state = state;
-    registers.COMM[0] = 0x80 + (state & 0x0F);
+    registers.COMM[0] = 0x80 + (mux_state & 0x0F);
 }
 
 void SegmentBoard::update_volts(uint8_t cmd, uint8_t *buffer) {
@@ -55,6 +55,10 @@ void SegmentBoard::update_volts(uint8_t cmd, uint8_t *buffer) {
         cell_volts[10] = (registers.CVDR[2] & 0xff) + (registers.CVDR[3] << 8);
         cell_volts[11] = (registers.CVDR[4] & 0xff) + (registers.CVDR[5] << 8);
     }
+}
+
+void SegmentBoard::calculate_balance() {
+    // look through voltage array, figure out which balancing transistors to enable
 }
 
 SegmentBoard::~SegmentBoard() = default;

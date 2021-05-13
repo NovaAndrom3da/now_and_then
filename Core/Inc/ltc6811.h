@@ -37,13 +37,13 @@ void clock_68(uint16_t cmd, uint8_t len);
 
 bool read_68(uint8_t *data);
 
-bool read_cell_volts(uint16_t* data);
+//bool read_cell_volts(uint16_t* data);
 
 bool read_temps(uint16_t* data);
 
-void make_comm_reg_bytes(uint8_t mux_state, uint8_t led_state, uint8_t out[8]);
-
-void set_mux_cmd(uint8_t mux_state);
+//void make_comm_reg_bytes(uint8_t mux_state, uint8_t led_state, uint8_t out[8]);
+//
+//void set_mux_cmd(uint8_t mux_state);
 
 #define BYTES_PER_REGISTER  6
 #define COMMAND_WRCFGA              0b00000000001

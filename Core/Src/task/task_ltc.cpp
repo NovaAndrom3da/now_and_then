@@ -48,6 +48,10 @@ SegmentBoard* segments;
         delay_microseconds(100);
 
         cs_low();
+        write_68(COMMAND_WRCFGA, segments[0].registers.CFGR, 6);
+        cs_high();
+
+        cs_low();
         write_68(COMMAND_WRCOMM, segments[0].registers.COMM, 6);
         cs_high();
 
@@ -61,7 +65,7 @@ SegmentBoard* segments;
 
         cs_low();
         cmd_68(COMMAND_ADCV_MD_DCP_CH | MD_27HKHZ_FAST_14KHZ_MODE
-               | DCP_DISCHARGE_NOT_PERMITTED | CH_ALL_CELLS);
+               | DCP_DISCHARGE_PERMITTED | CH_ALL_CELLS);
         cs_high();
 
         delay_microseconds(1000);

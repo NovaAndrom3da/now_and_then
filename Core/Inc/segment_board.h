@@ -19,6 +19,7 @@ public:
     void set_leds(uint8_t state);
     void set_mux(uint8_t state);
     void update_volts(uint8_t cmd, uint8_t* buffer);
+    void calculate_balance();
 
     ltc68_reg_t registers = {0};
     uint16_t cell_volts[12] = {0};
