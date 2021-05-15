@@ -31,7 +31,7 @@ typedef struct {
 
 void cmd_68(uint16_t cmd);
 
-void write_68(uint16_t cmd, uint8_t *data, uint8_t data_len);
+void write_68(uint8_t *data, uint8_t data_len);
 
 void clock_68(uint16_t cmd, uint8_t len);
 

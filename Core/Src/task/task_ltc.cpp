@@ -34,10 +34,13 @@ SegmentBoard* segments;
     segments[0] = SegmentBoard();
 
     uint8_t led_state = 0;
-    uint8_t buffer[8] = {0};
+    uint8_t buffer[8 * num_segments] = {0};
 
     while (1) {
         segments[0].set_leds(led_state);
+        segments[1].set_leds(led_state);
+
+//        segment 0 is the one furthest away from master on the chain
 
         taskENTER_CRITICAL();
 
@@ -48,11 +51,15 @@ SegmentBoard* segments;
         delay_microseconds(100);
 
         cs_low();
-        write_68(COMMAND_WRCFGA, segments[0].registers.CFGR, 6);
+        cmd_68(COMMAND_WRCFGA);
+        write_68(segments[0].registers.CFGR, 6);
+        write_68(segments[1].registers.CFGR, 6);
         cs_high();
 
         cs_low();
-        write_68(COMMAND_WRCOMM, segments[0].registers.COMM, 6);
+        cmd_68(COMMAND_WRCOMM);
+        write_68(segments[0].registers.COMM, 6);
+        write_68(segments[1].registers.COMM, 6);
         cs_high();
 
         delay_microseconds(100);
@@ -72,34 +79,54 @@ SegmentBoard* segments;
 
         cs_low();
         cmd_68(COMMAND_RDCVA);
-        bool match = read_68(buffer);
+        bool match = true;
+        for (int i = 0; i < num_segments; i++) {
+            match &= read_68(buffer + i * 8);
+        }
         cs_high();
         if (match) {
-            segments[0].update_volts(COMMAND_RDCVA, buffer);
+            for (int i = 0; i < num_segments; i++) {
+                segments[num_segments - 1 - i].update_volts(COMMAND_RDCVA, buffer + i * 8);
+            }
         }
 
         cs_low();
         cmd_68(COMMAND_RDCVB);
-        match = read_68(buffer);
+        match = true;
+        for (int i = 0; i < num_segments; i++) {
+            match &= read_68(buffer + i * 8);
+        }
         cs_high();
         if (match) {
-            segments[0].update_volts(COMMAND_RDCVB, buffer);
+            for (int i = 0; i < num_segments; i++) {
+                segments[num_segments - 1 - i].update_volts(COMMAND_RDCVB, buffer + i * 8);
+            }
         }
 
         cs_low();
         cmd_68(COMMAND_RDCVC);
-        match = read_68(buffer);
+        match = true;
+        for (int i = 0; i < num_segments; i++) {
+            match &= read_68(buffer + i * 8);
+        }
         cs_high();
         if (match) {
-            segments[0].update_volts(COMMAND_RDCVC, buffer);
+            for (int i = 0; i < num_segments; i++) {
+                segments[num_segments - 1 - i].update_volts(COMMAND_RDCVC, buffer + i * 8);
+            }
         }
 
         cs_low();
         cmd_68(COMMAND_RDCVD);
-        match = read_68(buffer);
+        match = true;
+        for (int i = 0; i < num_segments; i++) {
+            match &= read_68(buffer + i * 8);
+        }
         cs_high();
         if (match) {
-            segments[0].update_volts(COMMAND_RDCVD, buffer);
+            for (int i = 0; i < num_segments; i++) {
+                segments[num_segments - 1 - i].update_volts(COMMAND_RDCVD, buffer + i * 8);
+            }
         }
 
         taskEXIT_CRITICAL();

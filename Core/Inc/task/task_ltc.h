@@ -13,7 +13,7 @@
  * The main task will send instructions once, it is up to task_ltc to handle
  * repeating SPI commands the appropriate number of times.
  */
-#define num_segments 1
+#define num_segments 2
 
 void task_ltc_setup(void);
 

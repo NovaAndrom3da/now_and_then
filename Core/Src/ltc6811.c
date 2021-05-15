@@ -29,8 +29,8 @@ void cmd_68(uint16_t cmd) {
     HAL_SPI_Transmit(&hspi1, spi_cmd, 4, 100);
 }
 
-void write_68(uint16_t cmd, uint8_t *data, uint8_t data_len) {
-    cmd_68(cmd);
+void write_68(uint8_t *data, uint8_t data_len) {
+//    cmd_68(cmd);
 
     if (data_len > 0) {
         uint16_t temp_pec = pec15(data, 6);
