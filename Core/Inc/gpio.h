@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+#include <stdbool.h>
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
@@ -38,7 +39,10 @@ extern "C" {
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void set_led_1(bool on);
+void set_led_2(bool on);
+void set_led_3(bool on);
+void set_led_4(bool on);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
