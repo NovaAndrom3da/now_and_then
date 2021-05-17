@@ -36,7 +36,7 @@ void SegmentBoard::set_mux(uint8_t state) {
 void SegmentBoard::update_volts(uint8_t cmd, uint8_t *buffer) {
     if (cmd == COMMAND_RDCVA) {
         memcpy(registers.CVAR, buffer, 6);
-        cell_volts[0] = (registers.CVAR[0] & 0xff) + (registers.CVAR[1] << 8);
+        cell_volts[0] = (registers.CVAR[0] & 0xff) + (registers.CVAR[1] << 8) + 50;
         cell_volts[1] = (registers.CVAR[2] & 0xff) + (registers.CVAR[3] << 8);
         cell_volts[2] = (registers.CVAR[4] & 0xff) + (registers.CVAR[5] << 8);
     } else if (cmd == COMMAND_RDCVB) {
@@ -53,12 +53,94 @@ void SegmentBoard::update_volts(uint8_t cmd, uint8_t *buffer) {
         memcpy(registers.CVDR, buffer, 6);
         cell_volts[9] = (registers.CVDR[0] & 0xff) + (registers.CVDR[1] << 8);
         cell_volts[10] = (registers.CVDR[2] & 0xff) + (registers.CVDR[3] << 8);
-        cell_volts[11] = (registers.CVDR[4] & 0xff) + (registers.CVDR[5] << 8);
+        cell_volts[11] = (registers.CVDR[4] & 0xff) + (registers.CVDR[5] << 8) + 60;
     }
+
+    uint32_t temp = 0;
+    for (unsigned short cell_volt : cell_volts) {
+        temp += cell_volt;
+    }
+    segment_voltage = temp / 10;
 }
 
 void SegmentBoard::calculate_balance() {
     // look through voltage array, figure out which balancing transistors to enable
+}
+
+void SegmentBoard::set_balance_transistor(uint8_t cell_n, bool discharging) {
+    if (cell_n == 0) {
+        if (discharging) {
+            registers.CFGR[4] |= 0b00000001;
+        } else {
+            registers.CFGR[4] &= 0b11111110;
+        }
+    } else if (cell_n == 1) {
+        if (discharging) {
+            registers.CFGR[4] |= 0b00000010;
+        } else {
+            registers.CFGR[4] &= 0b11111101;
+        }
+    } else if (cell_n == 2) {
+        if (discharging) {
+            registers.CFGR[4] |= 0b00000100;
+        } else {
+            registers.CFGR[4] &= 0b11111011;
+        }
+    } else if (cell_n == 3) {
+        if (discharging) {
+            registers.CFGR[4] |= 0b00001000;
+        } else {
+            registers.CFGR[4] &= 0b11110111;
+        }
+    } else if (cell_n == 4) {
+        if (discharging) {
+            registers.CFGR[4] |= 0b00010000;
+        } else {
+            registers.CFGR[4] &= 0b11101111;
+        }
+    } else if (cell_n == 5) {
+        if (discharging) {
+            registers.CFGR[4] |= 0b00100000;
+        } else {
+            registers.CFGR[4] &= 0b11011111;
+        }
+    } else if (cell_n == 6) {
+        if (discharging) {
+            registers.CFGR[4] |= 0b01000000;
+        } else {
+            registers.CFGR[4] &= 0b10111111;
+        }
+    } else if (cell_n == 7) {
+        if (discharging) {
+            registers.CFGR[4] |= 0b10000000;
+        } else {
+            registers.CFGR[4] &= 0b01111111;
+        }
+    } else if (cell_n == 8) {
+        if (discharging) {
+            registers.CFGR[5] |= 0b00000001;
+        } else {
+            registers.CFGR[5] &= 0b11111110;
+        }
+    } else if (cell_n == 9) {
+        if (discharging) {
+            registers.CFGR[5] |= 0b00000010;
+        } else {
+            registers.CFGR[5] &= 0b11111101;
+        }
+    } else if (cell_n == 10) {
+        if (discharging) {
+            registers.CFGR[5] |= 0b00000100;
+        } else {
+            registers.CFGR[5] &= 0b11111011;
+        }
+    } else if (cell_n == 11) {
+        if (discharging) {
+            registers.CFGR[5] |= 0b00001000;
+        } else {
+            registers.CFGR[5] &= 0b11110111;
+        }
+    }
 }
 
 SegmentBoard::~SegmentBoard() = default;

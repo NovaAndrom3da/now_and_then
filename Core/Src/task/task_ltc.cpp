@@ -36,11 +36,19 @@ SegmentBoard* segments;
     uint8_t led_state = 0;
     uint8_t buffer[8 * num_segments] = {0};
 
-    while (1) {
-        segments[0].set_leds(led_state);
-        segments[1].set_leds(led_state);
+    bool do_balance = true;
+    uint16_t diff_limit = 50;
 
-//        segment 0 is the one furthest away from master on the chain
+    while (1) {
+        if (do_balance) {
+            led_state = 1;
+        } else {
+            led_state = 0;
+        }
+
+        // segment 0 is the one furthest away from master on the chain
+        segments[0].set_leds(led_state);
+
 
         taskENTER_CRITICAL();
 
@@ -51,15 +59,10 @@ SegmentBoard* segments;
         delay_microseconds(100);
 
         cs_low();
-        cmd_68(COMMAND_WRCFGA);
-        write_68(segments[0].registers.CFGR, 6);
-        write_68(segments[1].registers.CFGR, 6);
-        cs_high();
-
-        cs_low();
         cmd_68(COMMAND_WRCOMM);
-        write_68(segments[0].registers.COMM, 6);
-        write_68(segments[1].registers.COMM, 6);
+        for (int i = 0; i < num_segments; i++) {
+            write_68(segments[i].registers.COMM, 6);
+        }
         cs_high();
 
         delay_microseconds(100);
@@ -71,11 +74,11 @@ SegmentBoard* segments;
         delay_microseconds(100);
 
         cs_low();
-        cmd_68(COMMAND_ADCV_MD_DCP_CH | MD_27HKHZ_FAST_14KHZ_MODE
-               | DCP_DISCHARGE_PERMITTED | CH_ALL_CELLS);
+        cmd_68(COMMAND_ADCV_MD_DCP_CH | MD_7KHZ_NORMAL_3KHZ_MODE
+               | DCP_DISCHARGE_NOT_PERMITTED | CH_ALL_CELLS);
         cs_high();
 
-        delay_microseconds(1000);
+        delay_microseconds(2000);
 
         cs_low();
         cmd_68(COMMAND_RDCVA);
@@ -129,12 +132,41 @@ SegmentBoard* segments;
             }
         }
 
-        taskEXIT_CRITICAL();
-
-        led_state++;
-        if (led_state >= 8) {
-            led_state = 0;
+        uint16_t lowest_volt = 65535;
+        uint16_t highest_volt = 0;
+        for (uint16_t cell_volt : segments[0].cell_volts) {
+            if (cell_volt < lowest_volt) {
+                lowest_volt = cell_volt;
+            }
+            if (cell_volt > highest_volt) {
+                highest_volt = cell_volt;
+            }
         }
+
+        if (highest_volt - lowest_volt < diff_limit) {
+            do_balance = false;
+        } else if (highest_volt - lowest_volt > diff_limit * 2) {
+            do_balance = true;
+        }
+
+        if (do_balance) {
+            for (int i = 0; i < 12; i++) {
+                if (segments[0].cell_volts[i] > lowest_volt + diff_limit && segments[0].cell_volts[i] > 30000) {
+                    segments[0].set_balance_transistor(i, true);
+                } else {
+                    segments[0].set_balance_transistor(i, false);
+                }
+            }
+        }
+
+        cs_low();
+        cmd_68(COMMAND_WRCFGA);
+        for (int i = 0; i < num_segments; i++) {
+            write_68(segments[i].registers.CFGR, 6);
+        }
+        cs_high();
+
+        taskEXIT_CRITICAL();
 
         vTaskDelay(pdMS_TO_TICKS(500));
     }
