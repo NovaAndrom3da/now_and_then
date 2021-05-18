@@ -66,6 +66,8 @@ void Error_Handler(void);
 #define A_Current__sig_GPIO_Port GPIOA
 #define A_Current__sigA3_Pin GPIO_PIN_3
 #define A_Current__sigA3_GPIO_Port GPIOA
+#define spi_cs_Pin GPIO_PIN_4
+#define spi_cs_GPIO_Port GPIOA
 #define D_Aux_HS_sig_Pin GPIO_PIN_0
 #define D_Aux_HS_sig_GPIO_Port GPIOB
 #define D_Aux_LS_sig_Pin GPIO_PIN_1
