@@ -36,11 +36,12 @@ SegmentBoard* segments;
     uint8_t led_state = 0;
     uint8_t buffer[8 * num_segments] = {0};
 
-    bool do_balance = true;
+    bool need_balance = false;
+    bool want_balance = false;
     uint16_t diff_limit = 50;
 
     while (1) {
-        if (do_balance) {
+        if (need_balance) {
             led_state = 1;
         } else {
             led_state = 0;
@@ -144,12 +145,12 @@ SegmentBoard* segments;
         }
 
         if (highest_volt - lowest_volt < diff_limit) {
-            do_balance = false;
+            need_balance = false;
         } else if (highest_volt - lowest_volt > diff_limit * 2) {
-            do_balance = true;
+            need_balance = true;
         }
 
-        if (do_balance) {
+        if (need_balance && want_balance) {
             for (int i = 0; i < 12; i++) {
                 if (segments[0].cell_volts[i] > lowest_volt + diff_limit && segments[0].cell_volts[i] > 30000) {
                     segments[0].set_balance_transistor(i, true);
