@@ -16,6 +16,10 @@
 #define num_segments 1
 
 void task_ltc_setup(void);
+void wake_ltc_routine(void);
+void write_comm_routine(void);
+void read_cvr_routine(void);
+void read_temp_routine(void);
 
 //void start_task_ltc(void *argument);
 extern "C" [[noreturn]] void start_task_ltc(void *argument);

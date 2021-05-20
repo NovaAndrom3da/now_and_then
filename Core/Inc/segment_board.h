@@ -21,12 +21,17 @@ public:
     void update_volts(uint8_t cmd, uint8_t* buffer);
     void calculate_balance();
     void set_balance_transistor(uint8_t cell_n, bool discharging);
+    void update_temps(uint8_t* buffer);
 
     ltc68_reg_t registers = {0};
     uint16_t cell_volts[12] = {0};
-    uint16_t cell_temps[12] = {0};
+    float cell_temps[32] = {0};
     uint16_t open_wires;
     uint16_t segment_voltage = 0;
+    uint16_t volt_delta_limit = 50; // 5 mV max delta highest and lowest cell
+
+    bool need_balance = false;
+    bool want_balance = false;
 };
 
 #endif //NOW_AND_THEN_SEGMENT_BOARD_H

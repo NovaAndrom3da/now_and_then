@@ -29,6 +29,8 @@ typedef struct {
     uint8_t PWM[6];
 } ltc68_reg_t;
 
+extern uint8_t real_mux_states[16];
+
 void cmd_68(uint16_t cmd);
 
 void write_68(uint8_t *data, uint8_t data_len);

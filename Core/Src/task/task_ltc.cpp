@@ -21,10 +21,7 @@ void task_ltc_setup(void) {
     ltc_spi_rx_Q = xQueueCreate(1, sizeof(ltc_spi_rx_t));
 }
 
-float temp_conversion(uint16_t raw) {
-    float raw_float = raw;
-    return ((raw_float / 10.0f) - 400.0f) / 19.5f;
-}
+
 
 SegmentBoard* segments;
 
@@ -34,7 +31,7 @@ SegmentBoard* segments;
     segments[0] = SegmentBoard();
 
     uint8_t led_state = 0;
-    uint8_t buffer[8 * num_segments] = {0};
+    uint8_t mux_state = 0;
 
     bool need_balance = false;
     bool want_balance = false;
@@ -47,30 +44,34 @@ SegmentBoard* segments;
             led_state = 0;
         }
 
-        // segment 0 is the one furthest away from master on the chain
-        segments[0].set_leds(led_state);
+        mux_state++;
+        if (mux_state >= 16) {
+            mux_state = 0;
+        }
 
+        for (int i = 0; i < num_segments; i++) {
+            // segment 0 is the one furthest away from master on the chain
+            segments[i].set_leds(led_state);
+            segments[i].set_mux(mux_state);
+        }
 
         taskENTER_CRITICAL();
 
-        cs_low();
-        delay_microseconds(240);
-        cs_high();
+        wake_ltc_routine();
+
+        delay_microseconds(100);
+
+        write_comm_routine();
 
         delay_microseconds(100);
 
         cs_low();
-        cmd_68(COMMAND_WRCOMM);
-        for (int i = 0; i < num_segments; i++) {
-            write_68(segments[i].registers.COMM, 6);
-        }
+        cmd_68(COMMAND_ADAX_MD_CHG | MD_27HKHZ_FAST_14KHZ_MODE | DCP_DISCHARGE_NOT_PERMITTED | CHG_GPIO_ALL);
         cs_high();
 
-        delay_microseconds(100);
+        delay_microseconds(2000);
 
-        cs_low();
-        clock_68(COMMAND_STCOMM, 3);
-        cs_high();
+        read_temp_routine();
 
         delay_microseconds(100);
 
@@ -81,83 +82,10 @@ SegmentBoard* segments;
 
         delay_microseconds(2000);
 
-        cs_low();
-        cmd_68(COMMAND_RDCVA);
-        bool match = true;
+        read_cvr_routine();
+
         for (int i = 0; i < num_segments; i++) {
-            match &= read_68(buffer + i * 8);
-        }
-        cs_high();
-        if (match) {
-            for (int i = 0; i < num_segments; i++) {
-                segments[num_segments - 1 - i].update_volts(COMMAND_RDCVA, buffer + i * 8);
-            }
-        }
-
-        cs_low();
-        cmd_68(COMMAND_RDCVB);
-        match = true;
-        for (int i = 0; i < num_segments; i++) {
-            match &= read_68(buffer + i * 8);
-        }
-        cs_high();
-        if (match) {
-            for (int i = 0; i < num_segments; i++) {
-                segments[num_segments - 1 - i].update_volts(COMMAND_RDCVB, buffer + i * 8);
-            }
-        }
-
-        cs_low();
-        cmd_68(COMMAND_RDCVC);
-        match = true;
-        for (int i = 0; i < num_segments; i++) {
-            match &= read_68(buffer + i * 8);
-        }
-        cs_high();
-        if (match) {
-            for (int i = 0; i < num_segments; i++) {
-                segments[num_segments - 1 - i].update_volts(COMMAND_RDCVC, buffer + i * 8);
-            }
-        }
-
-        cs_low();
-        cmd_68(COMMAND_RDCVD);
-        match = true;
-        for (int i = 0; i < num_segments; i++) {
-            match &= read_68(buffer + i * 8);
-        }
-        cs_high();
-        if (match) {
-            for (int i = 0; i < num_segments; i++) {
-                segments[num_segments - 1 - i].update_volts(COMMAND_RDCVD, buffer + i * 8);
-            }
-        }
-
-        uint16_t lowest_volt = 65535;
-        uint16_t highest_volt = 0;
-        for (uint16_t cell_volt : segments[0].cell_volts) {
-            if (cell_volt < lowest_volt) {
-                lowest_volt = cell_volt;
-            }
-            if (cell_volt > highest_volt) {
-                highest_volt = cell_volt;
-            }
-        }
-
-        if (highest_volt - lowest_volt < diff_limit) {
-            need_balance = false;
-        } else if (highest_volt - lowest_volt > diff_limit * 2) {
-            need_balance = true;
-        }
-
-        if (need_balance && want_balance) {
-            for (int i = 0; i < 12; i++) {
-                if (segments[0].cell_volts[i] > lowest_volt + diff_limit && segments[0].cell_volts[i] > 30000) {
-                    segments[0].set_balance_transistor(i, true);
-                } else {
-                    segments[0].set_balance_transistor(i, false);
-                }
-            }
+            segments[i].calculate_balance();
         }
 
         cs_low();
@@ -170,5 +98,100 @@ SegmentBoard* segments;
         taskEXIT_CRITICAL();
 
         vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}
+
+void wake_ltc_routine(void) {
+    cs_low();
+    delay_microseconds(240);
+    cs_high();
+}
+
+void write_comm_routine(void) {
+    cs_low();
+    cmd_68(COMMAND_WRCOMM);
+    for (int i = 0; i < num_segments; i++) {
+        write_68(segments[i].registers.COMM, 6);
+    }
+    cs_high();
+
+    delay_microseconds(100);
+
+    cs_low();
+    clock_68(COMMAND_STCOMM, 3);
+    cs_high();
+}
+
+void read_cvr_routine(void) {
+    uint8_t buffer[8 * num_segments] = {0};
+
+    cs_low();
+    cmd_68(COMMAND_RDCVA);
+    bool match = true;
+    for (int i = 0; i < num_segments; i++) {
+        match &= read_68(buffer + i * 8);
+    }
+    cs_high();
+    if (match) {
+        for (int i = 0; i < num_segments; i++) {
+            segments[num_segments - 1 - i].update_volts(COMMAND_RDCVA, buffer + i * 8);
+        }
+    }
+
+    cs_low();
+    cmd_68(COMMAND_RDCVB);
+    match = true;
+    for (int i = 0; i < num_segments; i++) {
+        match &= read_68(buffer + i * 8);
+    }
+    cs_high();
+    if (match) {
+        for (int i = 0; i < num_segments; i++) {
+            segments[num_segments - 1 - i].update_volts(COMMAND_RDCVB, buffer + i * 8);
+        }
+    }
+
+    cs_low();
+    cmd_68(COMMAND_RDCVC);
+    match = true;
+    for (int i = 0; i < num_segments; i++) {
+        match &= read_68(buffer + i * 8);
+    }
+    cs_high();
+    if (match) {
+        for (int i = 0; i < num_segments; i++) {
+            segments[num_segments - 1 - i].update_volts(COMMAND_RDCVC, buffer + i * 8);
+        }
+    }
+
+    cs_low();
+    cmd_68(COMMAND_RDCVD);
+    match = true;
+    for (int i = 0; i < num_segments; i++) {
+        match &= read_68(buffer + i * 8);
+    }
+    cs_high();
+    if (match) {
+        for (int i = 0; i < num_segments; i++) {
+            segments[num_segments - 1 - i].update_volts(COMMAND_RDCVD, buffer + i * 8);
+        }
+    }
+}
+
+void read_temp_routine(void) {
+    uint8_t buffer[8 * num_segments] = {0};
+
+    cs_low();
+    bool match = true;
+    cmd_68(COMMAND_RDAUXA);
+    delay_microseconds(100);
+    for (int i = 0; i < num_segments; i++) {
+        match &= read_68(buffer + i * 8);
+    }
+    cs_high();
+    if (match) {
+        for (int i = 0; i < num_segments; i++) {
+            segments[num_segments - 1 - i].update_temps(buffer + i * 8);
+        }
     }
 }

@@ -12,6 +12,25 @@
 uint32_t PEC_match_count = 0;
 uint32_t PEC_error_count = 0;
 
+uint8_t real_mux_states[16] = {
+        0b0000,
+        0b1000,
+        0b0100,
+        0b1100,
+        0b0010,
+        0b1010,
+        0b0110,
+        0b1110,
+        0b0001,
+        0b1001,
+        0b0101,
+        0b1101,
+        0b0011,
+        0b1011,
+        0b0111,
+        0b1111
+};
+
 // 8 bytes of trash to pump out to make clock cycles for reading
 uint8_t dummy[8] = {0x4C, 0x6F, 0x72, 0x61, 0x69, 0x6E, 0x65, 0x21};
 

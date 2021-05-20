@@ -30,7 +30,7 @@ void SegmentBoard::set_leds(uint8_t state) {
 
 void SegmentBoard::set_mux(uint8_t state) {
     mux_state = state;
-    registers.COMM[0] = 0x80 + (mux_state & 0x0F);
+    registers.COMM[0] = 0x80 + (real_mux_states[mux_state] & 0x0F);
 }
 
 void SegmentBoard::update_volts(uint8_t cmd, uint8_t *buffer) {
@@ -65,6 +65,36 @@ void SegmentBoard::update_volts(uint8_t cmd, uint8_t *buffer) {
 
 void SegmentBoard::calculate_balance() {
     // look through voltage array, figure out which balancing transistors to enable
+    uint16_t lowest_volt = 65535;
+    uint16_t highest_volt = 0;
+    for (uint16_t cell_volt : cell_volts) {
+        if (cell_volt < lowest_volt) {
+            lowest_volt = cell_volt;
+        }
+        if (cell_volt > highest_volt) {
+            highest_volt = cell_volt;
+        }
+    }
+
+    if (highest_volt - lowest_volt < volt_delta_limit) {
+        need_balance = false;
+    } else if (highest_volt - lowest_volt > volt_delta_limit * 2) {
+        need_balance = true;
+    }
+
+    if (need_balance && want_balance) {
+        for (int i = 0; i < 12; i++) {
+            if (cell_volts[i] > lowest_volt + volt_delta_limit && cell_volts[i] > 30000) {
+                set_balance_transistor(i, true);
+            } else {
+                set_balance_transistor(i, false);
+            }
+        }
+    } else {
+        for (int i = 0; i < 12; i++) {
+            set_balance_transistor(i, false);
+        }
+    }
 }
 
 void SegmentBoard::set_balance_transistor(uint8_t cell_n, bool discharging) {
@@ -141,6 +171,16 @@ void SegmentBoard::set_balance_transistor(uint8_t cell_n, bool discharging) {
             registers.CFGR[5] &= 0b11110111;
         }
     }
+}
+
+float temp_conversion(uint16_t raw) {
+    float raw_float = raw;
+    return ((raw_float / 10.0f) - 400.0f) / 19.5f;
+}
+
+void SegmentBoard::update_temps(uint8_t *buffer) {
+    cell_temps[mux_state] = temp_conversion(buffer[0]);
+    cell_temps[mux_state + 16] = temp_conversion(buffer[1]);
 }
 
 SegmentBoard::~SegmentBoard() = default;
