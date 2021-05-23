@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include <segment_board.h>
+#include <gpio.h>
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
 #include "task/task_ltc.h"
@@ -44,16 +45,9 @@ SegmentBoard* segments;
             led_state = 0;
         }
 
-        mux_state++;
-        if (mux_state >= 16) {
-            mux_state = 0;
-        }
 
-        for (int i = 0; i < num_segments; i++) {
-            // segment 0 is the one furthest away from master on the chain
-            segments[i].set_leds(led_state);
-            segments[i].set_mux(mux_state);
-        }
+
+
 
         taskENTER_CRITICAL();
 
@@ -61,39 +55,57 @@ SegmentBoard* segments;
 
         delay_microseconds(100);
 
-        write_comm_routine();
-
-        delay_microseconds(100);
-
         cs_low();
         cmd_68(COMMAND_ADAX_MD_CHG | MD_27HKHZ_FAST_14KHZ_MODE | DCP_DISCHARGE_NOT_PERMITTED | CHG_GPIO_ALL);
         cs_high();
 
-        delay_microseconds(2000);
+        delay_microseconds(5000);
 
         read_temp_routine();
 
         delay_microseconds(100);
 
-        cs_low();
-        cmd_68(COMMAND_ADCV_MD_DCP_CH | MD_7KHZ_NORMAL_3KHZ_MODE
-               | DCP_DISCHARGE_NOT_PERMITTED | CH_ALL_CELLS);
-        cs_high();
-
-        delay_microseconds(2000);
-
-        read_cvr_routine();
-
+        mux_state++;
+        if (mux_state >= 16) {
+            mux_state = 0;
+        }
         for (int i = 0; i < num_segments; i++) {
-            segments[i].calculate_balance();
+            // segment 0 is the one furthest away from master on the chain
+            segments[i].set_leds(led_state);
+            segments[i].set_mux(mux_state);
+        }
+        write_comm_routine();
+
+        delay_microseconds(100);
+
+        bool err_led_on = false;
+        for (int i = 0; i < 24; i++) {
+            if (segments[0].cell_temps[i] < 5 || segments[0].cell_temps[i] > 100) {
+                err_led_on = true;
+            }
         }
 
-        cs_low();
-        cmd_68(COMMAND_WRCFGA);
-        for (int i = 0; i < num_segments; i++) {
-            write_68(segments[i].registers.CFGR, 6);
-        }
-        cs_high();
+        set_led_1(err_led_on);
+
+//        cs_low();
+//        cmd_68(COMMAND_ADCV_MD_DCP_CH | MD_7KHZ_NORMAL_3KHZ_MODE
+//               | DCP_DISCHARGE_NOT_PERMITTED | CH_ALL_CELLS);
+//        cs_high();
+//
+//        delay_microseconds(2000);
+//
+//        read_cvr_routine();
+//
+//        for (int i = 0; i < num_segments; i++) {
+//            segments[i].calculate_balance();
+//        }
+//
+//        cs_low();
+//        cmd_68(COMMAND_WRCFGA);
+//        for (int i = 0; i < num_segments; i++) {
+//            write_68(segments[i].registers.CFGR, 6);
+//        }
+//        cs_high();
 
         taskEXIT_CRITICAL();
 
