@@ -179,8 +179,8 @@ float temp_conversion(uint16_t raw) {
 }
 
 void SegmentBoard::update_temps(uint8_t *buffer) {
-    cell_temps[mux_state] = temp_conversion(buffer[0]);
-    cell_temps[mux_state + 16] = temp_conversion(buffer[1]);
+    cell_temps[mux_state] = temp_conversion(buffer[0] + (buffer[1] << 8));
+    cell_temps[mux_state + 16] = temp_conversion(buffer[2] + (buffer[3] << 8));
 }
 
 SegmentBoard::~SegmentBoard() = default;
