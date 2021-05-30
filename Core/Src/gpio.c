@@ -67,9 +67,9 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(spi_cs_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PBPin PBPin PBPin PBPin
-                           PBPin */
+                           PBPin PBPin */
   GPIO_InitStruct.Pin = D_Aux_HS_sig_Pin|D_Aux_LS_sig_Pin|D_Shutdown_Contactor_sig_Pin|IMD_fault_sig_Pin
-                          |D_charger_detect_sig_Pin;
+                          |D_IMD_fault_sig_latched_Pin|D_Final_Close_Sig_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -82,7 +82,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PAPin PAPin */
-  GPIO_InitStruct.Pin = D_shutdown_latch_sig_Pin|D_shutdown_bms_sig_Pin;
+  GPIO_InitStruct.Pin = D_BMS_fault_latched_sig_Pin|D_shutdown_bms_sig_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
