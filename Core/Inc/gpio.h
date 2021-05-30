@@ -25,11 +25,10 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include <stdbool.h>
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
@@ -43,6 +42,9 @@ void set_led_1(bool on);
 void set_led_2(bool on);
 void set_led_3(bool on);
 void set_led_4(bool on);
+void set_precharge(bool closed);
+void set_final_close(bool closed);
+void set_BMS_fault(bool faulted);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

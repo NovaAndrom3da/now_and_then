@@ -104,6 +104,8 @@ void Error_Handler(void);
 #define spi_cs_temp_GPIO_Port GPIOD
 #define IMD_data_Pin GPIO_PIN_3
 #define IMD_data_GPIO_Port GPIOB
+#define D_precharge_cmd_Pin GPIO_PIN_5
+#define D_precharge_cmd_GPIO_Port GPIOB
 #define D_Final_Close_cmd_Pin GPIO_PIN_6
 #define D_Final_Close_cmd_GPIO_Port GPIOB
 #define D_charger_detect_sig_Pin GPIO_PIN_7

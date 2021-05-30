@@ -6,6 +6,9 @@
 #include "stm32f4xx_hal.h"
 #include "task/task_can_bus.h"
 #include "task/task_imd_timer.h"
+#include <stdbool.h>
+#include <gpio.h>
+
 
 uint32_t counter = 0;
 
@@ -16,6 +19,11 @@ _Noreturn void start_task_main(void *argument) {
 
     TickType_t last_wake = xTaskGetTickCount();
 
+    bool on = true;
+
+    set_BMS_fault(false);
+
+
     while (1) {
         status = xQueueReceive(IMD_Q, &data, 0);
         if (status == pdPASS) {
@@ -24,8 +32,10 @@ _Noreturn void start_task_main(void *argument) {
 
         send_can_msg(0x01, &dummy, 1);
 
+        set_final_close(true);
+        set_precharge(true);
 
 
-        vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(100));
+        vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(1000));
     }
 }

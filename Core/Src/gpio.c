@@ -21,7 +21,7 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN 0 */
-
+#include <stdbool.h>
 /* USER CODE END 0 */
 
 /*----------------------------------------------------------------------------*/
@@ -57,7 +57,7 @@ void MX_GPIO_Init(void)
                           |spi_cs_temp_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, D_Final_Close_cmd_Pin|D_dcdc_enable_cmd_Pin|D_BMS_fault_cmd_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, D_precharge_cmd_Pin|D_Final_Close_cmd_Pin|D_dcdc_enable_cmd_Pin|D_BMS_fault_cmd_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = spi_cs_Pin;
@@ -94,16 +94,14 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(spi_cs_temp_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PBPin PBPin PBPin */
-  GPIO_InitStruct.Pin = D_Final_Close_cmd_Pin|D_dcdc_enable_cmd_Pin|D_BMS_fault_cmd_Pin;
+  /*Configure GPIO pins : PBPin PBPin PBPin PBPin */
+  GPIO_InitStruct.Pin = D_precharge_cmd_Pin|D_Final_Close_cmd_Pin|D_dcdc_enable_cmd_Pin|D_BMS_fault_cmd_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 }
-
-
 
 /* USER CODE BEGIN 2 */
 void set_led_1(bool on) {
@@ -135,6 +133,30 @@ void set_led_4(bool on) {
         HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_SET);
     } else {
         HAL_GPIO_WritePin(LD4_GPIO_Port, LD4_Pin, GPIO_PIN_RESET);
+    }
+}
+
+void set_precharge(bool closed) {
+    if (closed) {
+        HAL_GPIO_WritePin(D_precharge_cmd_GPIO_Port, D_precharge_cmd_Pin, GPIO_PIN_RESET);
+    } else {
+        HAL_GPIO_WritePin(D_precharge_cmd_GPIO_Port, D_precharge_cmd_Pin, GPIO_PIN_SET);
+    }
+}
+
+void set_BMS_fault(bool faulted) {
+    if (faulted) {
+        HAL_GPIO_WritePin(D_BMS_fault_cmd_GPIO_Port, D_BMS_fault_cmd_Pin, GPIO_PIN_RESET);
+    } else {
+        HAL_GPIO_WritePin(D_BMS_fault_cmd_GPIO_Port, D_BMS_fault_cmd_Pin, GPIO_PIN_SET);
+    }
+}
+
+void set_final_close(bool closed) {
+    if (closed) {
+        HAL_GPIO_WritePin(D_Final_Close_cmd_GPIO_Port, D_Final_Close_cmd_Pin, GPIO_PIN_RESET);
+    } else {
+        HAL_GPIO_WritePin(D_Final_Close_cmd_GPIO_Port, D_Final_Close_cmd_Pin, GPIO_PIN_SET);
     }
 }
 /* USER CODE END 2 */
