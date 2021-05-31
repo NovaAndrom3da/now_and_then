@@ -38,6 +38,8 @@ extern "C" {
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+
+// set
 void set_led_1(bool on);
 void set_led_2(bool on);
 void set_led_3(bool on);
@@ -45,6 +47,16 @@ void set_led_4(bool on);
 void set_precharge(bool closed);
 void set_final_close(bool closed);
 void set_BMS_fault(bool faulted);
+
+// get
+bool is_bms_fault_latch();
+bool is_HS_closed();
+bool is_LS_closed();
+bool is_shutdown_closed();
+bool is_final_closed();
+bool is_IMD_faulted();
+bool is_IMD_fault_latched();
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

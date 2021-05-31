@@ -159,6 +159,34 @@ void set_final_close(bool closed) {
         HAL_GPIO_WritePin(D_Final_Close_cmd_GPIO_Port, D_Final_Close_cmd_Pin, GPIO_PIN_SET);
     }
 }
+
+bool is_bms_fault_latch() {
+    return HAL_GPIO_ReadPin(D_BMS_fault_latched_sig_GPIO_Port, D_BMS_fault_latched_sig_Pin) == GPIO_PIN_SET;
+}
+
+bool is_HS_closed() {
+    return HAL_GPIO_ReadPin(D_Aux_HS_sig_GPIO_Port, D_Aux_HS_sig_Pin) == GPIO_PIN_RESET;
+}
+
+bool is_LS_closed() {
+    return HAL_GPIO_ReadPin(D_Aux_LS_sig_GPIO_Port, D_Aux_LS_sig_Pin) == GPIO_PIN_RESET;
+}
+
+bool is_shutdown_closed() {
+    return HAL_GPIO_ReadPin(D_Shutdown_Contactor_sig_GPIO_Port, D_Shutdown_Contactor_sig_Pin) == GPIO_PIN_RESET;
+}
+
+bool is_final_closed() {
+    return HAL_GPIO_ReadPin(D_Final_Close_Sig_GPIO_Port, D_Final_Close_Sig_Pin) == GPIO_PIN_RESET;
+}
+
+bool is_IMD_faulted() {
+    return HAL_GPIO_ReadPin(IMD_fault_sig_GPIO_Port, IMD_fault_sig_Pin) == GPIO_PIN_SET;
+}
+
+bool is_IMD_fault_latched() {
+    return HAL_GPIO_ReadPin(D_IMD_fault_sig_latched_GPIO_Port, D_IMD_fault_sig_latched_Pin) == GPIO_PIN_SET;
+}
 /* USER CODE END 2 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

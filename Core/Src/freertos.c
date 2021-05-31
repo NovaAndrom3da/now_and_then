@@ -76,6 +76,13 @@ const osThreadAttr_t task_can_bus_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
+/* Definitions for task_adc */
+osThreadId_t task_adcHandle;
+const osThreadAttr_t task_adc_attributes = {
+  .name = "task_adc",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -86,6 +93,7 @@ void StartDefaultTask(void *argument);
 extern void start_task_ltc(void *argument);
 extern void start_task_main(void *argument);
 extern void start_task_can_bus(void *argument);
+extern void start_task_adc(void *argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -128,6 +136,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of task_can_bus */
   task_can_busHandle = osThreadNew(start_task_can_bus, NULL, &task_can_bus_attributes);
+
+  /* creation of task_adc */
+  task_adcHandle = osThreadNew(start_task_adc, NULL, &task_adc_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
