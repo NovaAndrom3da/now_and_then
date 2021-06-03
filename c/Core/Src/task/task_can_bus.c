@@ -9,6 +9,8 @@
 #include "task/task_can_bus.h"
 
 QueueHandle_t CAN_tx_Q;
+QueueHandle_t CAN_rx_Q;
+
 HAL_StatusTypeDef stat = 0;
 uint32_t mailbox = 0;
 
@@ -16,18 +18,26 @@ _Noreturn void start_task_can_bus(void *argument) {
     HAL_CAN_Start(&hcan1);
     HAL_CAN_ActivateNotification(&hcan1, CAN_IT_TX_MAILBOX_EMPTY);
     while (1) {
+        // process tx
         if (uxQueueMessagesWaiting(CAN_tx_Q) > 0 && HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) > 0) {
             CAN_tx_request_t req = {0};
 
             xQueueReceive(CAN_tx_Q, &req, 10);
             stat = HAL_CAN_AddTxMessage(&hcan1, &req.header, (uint8_t *) &req.data, &mailbox);
         }
+
+        // process rx
+        if (uxQueueMessagesWaiting(CAN_rx_Q) > 0) {
+
+        }
+
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
 void setup_can_bus_task(void) {
-    CAN_tx_Q = xQueueCreate(50, sizeof(CAN_tx_request_t));
+    CAN_tx_Q = xQueueCreate(CAN_tx_Q_size, sizeof(CAN_tx_request_t));
+    CAN_rx_Q = xQueueCreate(CAN_rx_Q_size, sizeof(CAN_rx_t));
 }
 
 BaseType_t send_can_msg(uint32_t msg_id, void *data, uint8_t data_len) {
@@ -45,7 +55,7 @@ BaseType_t send_can_msg(uint32_t msg_id, void *data, uint8_t data_len) {
 void TxMailboxCompleteCallback(CAN_HandleTypeDef *hcan) {
     if (uxQueueMessagesWaitingFromISR(CAN_tx_Q) > 0) {
         CAN_tx_request_t req = {0};
-        uint32_t mailbox = 0;
+//        uint32_t mailbox = 0;
         xQueueReceiveFromISR(CAN_tx_Q, &req, NULL);
         HAL_CAN_AddTxMessage(hcan, &req.header, (uint8_t *) &req.data, &mailbox);
     }
@@ -61,4 +71,26 @@ void HAL_CAN_TxMailbox1CompleteCallback(CAN_HandleTypeDef *hcan) {
 
 void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef *hcan) {
     TxMailboxCompleteCallback(hcan);
+}
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+    CAN_rx_t rx_msg = { 0 };
+    HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_msg.header, (uint8_t *) &rx_msg.data);
+
+    xQueueSendFromISR(CAN_rx_Q, &rx_msg, NULL);
+}
+
+void HAL_CAN_RxFifo0FullCallback(CAN_HandleTypeDef *hcan) {
+    HAL_CAN_RxFifo0MsgPendingCallback(hcan);
+}
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+    CAN_rx_t rx_msg = { 0 };
+    HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &rx_msg.header, (uint8_t *) &rx_msg.data);
+
+    xQueueSendFromISR(CAN_rx_Q, &rx_msg, NULL);
+}
+
+void HAL_CAN_RxFifo1FullCallback(CAN_HandleTypeDef *hcan) {
+    HAL_CAN_RxFifo1MsgPendingCallback(hcan);
 }

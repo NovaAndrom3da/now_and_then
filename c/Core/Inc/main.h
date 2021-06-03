@@ -90,8 +90,6 @@ void Error_Handler(void);
 #define D_BMS_fault_latched_sig_GPIO_Port GPIOA
 #define USB_VBUS_Pin GPIO_PIN_9
 #define USB_VBUS_GPIO_Port GPIOA
-#define D_shutdown_bms_sig_Pin GPIO_PIN_10
-#define D_shutdown_bms_sig_GPIO_Port GPIOA
 #define USB_DM_Pin GPIO_PIN_11
 #define USB_DM_GPIO_Port GPIOA
 #define USB_DP_Pin GPIO_PIN_12

@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include "FreeRTOS.h"
 #include "queue.h"
+#include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_can.h"
 
 _Noreturn void start_task_can_bus(void *argument);
@@ -22,5 +23,16 @@ typedef struct {
 } CAN_tx_request_t;
 
 extern QueueHandle_t CAN_tx_Q;
+
+#define CAN_tx_Q_size 50
+
+typedef struct {
+    CAN_RxHeaderTypeDef header;
+    uint64_t data;
+} CAN_rx_t;
+
+extern QueueHandle_t CAN_rx_Q;
+
+#define CAN_rx_Q_size 50
 
 #endif //NOW_AND_THEN_TASK_CAN_BUS_H
