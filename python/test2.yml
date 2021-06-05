@@ -1,0 +1,202 @@
+# The numbers assigned to each priority level
+# get placed in the "priority" id field of the CAN bus ID.
+# Therefore, due to the CAN bus arbitration mechanism, lower numbered priorities
+# are higher priorities
+priority_levels:
+  TIME_CRITICAL:  0   #   Data that MUST be received in realtime for safety stuff. eg.
+  # pedal data, motor commands, traction control, etc.
+  HIGH:           1   #   Data that should be prioritized above normal, e.g. heartbeats, status
+  # messages, etc.
+  NORMAL:         2   #   Default priority. Messages that are important for the car's functioning
+  # but don't need to be received with strict deadlines. E.g. PDM commands,
+  LOW:            3   #   Messages not necessary for functioning of the car. E.g. temperature
+  # measurements for data acquisition purposes, etc.
+  DEBUG:          4   #   Debug output from nodes, CAN boot loader flashing stuff, config settings, etc.
+nodes:
+  Inverter:
+    !Node
+    subscribe:
+      - PEDAL_RAW
+      - PEDAL
+      - FCU_STATUS
+      - FCU_FAULTS
+      - RCU_STATUS
+      - BMS_STATUS
+      - BMS_CURRENT
+      - BMS_VOLTAGE
+      - BMS_CELL_TEMP_SUMMARY
+      - BMS_CELL_VOLT_SUMMARY
+      - BMS_SOC
+      - BMS_DCDC
+      - INV_STATUS
+      - INV_VELOCITY
+      - INV_TEMPERATURE_A
+      - INV_TEMPERATURE_B
+      - INV_TEMPERATURE_C
+      - TLM_STATUS
+    publish:
+      INV_DRIVE_CMD:
+        !Message
+        id: 0x00000541
+        priority: 'NORMAL'
+        period: 20 # ms
+        fields:
+          motor_velocity: 'float'
+          motor_current: 'float'
+      INV_POWER_CMD:
+        !Message
+        id: 0x00000542
+        priority: 'NORMAL'
+        period: 20
+        fields:
+          reserved: 'float'
+          bus_current: 'float'
+      INV_RESET:
+        !Message
+        id: 0x00000543
+        priority: 'NORMAL'
+        fields:
+          ~
+      INV_IDENT:
+        !Message
+        id: 0x00000500
+        priority: 'NORMAL'
+        period: 1000
+        fields:
+          tritium_id: 'uint32_t'
+          serial_number: 'uint32_t'
+      INV_STATUS:
+        !Message
+        id: 0x00000501
+        priority: 'NORMAL'
+        period: 200
+        fields:
+          limit_flags:
+            - reserved7
+            - motor_temperature
+            - bus_voltage_max
+            - bus_voltage_min
+            - bus_current
+            - velocity
+            - motor_current
+            - output_pwm
+          error_flags:
+            - igbt_desaturation
+            - v15_rail_uvlo
+            - config_read_error
+            - watchdog_caused_last_reset
+            - bad_hall_sequence
+            - dc_bus_overvolt
+            - software_overcurrent
+            - hardware_overcurrent
+            - need
+            - extra
+            - bits
+            - for
+            - testing
+            - length
+          active_motor: 'uint16_t'
+          tx_error_count: 'uint8_t'
+          rx_error_count: 'uint8_t'
+      INV_BUS:
+        !Message
+        id: 0x00000502
+        priority: 'NORMAL'
+        period: 200
+        fields:
+          bus_voltage: 'float'
+          bus_current: 'float'
+  Motor:
+    !Node
+    subscribe:
+    publish:
+  FCU:
+    !Node
+    subscribe:
+      - INV_STATUS
+      - INV_BUS
+      - INV_VELOCITY
+      - DASH_STATUS
+      - RCU_STATUS
+      - BMS_STATUS
+      - INV_TEMPERATURE_A
+    publish:
+      FCU_STATUS: # Vehicle status
+        !Message
+        priority: 'HIGH'
+        period: 20
+        fields:
+          vehicle_state:
+            type: 'uint8_t'    #e.g. #IDLE, TS_ACTIVE, HARD_FAULT, etc.
+            enum:
+              - DISCONNECT
+              - TS_OFF
+              - PRECHARGING
+              - TS_ACTIVE
+              - DRIVING
+              - HARD_FAULTED
+              - SOFT_FAULTED
+          vehicle_mode:     #e.g. ENDURANCE, AUTOX, PIT_TESTING, etc.
+            type: 'uint8_t'
+            enum:
+              - PIT_TESTING
+              - ENDURANCE
+              - AUTOCROSS
+              - ACCELERATION
+              - SKIDPAD
+              - EXTRA1
+              - EXTRA2
+              - EXTRA3
+          glv_voltage:
+            type: 'uint16_t'
+            scale: 1000
+            min_yel: 12.0
+            min_red: 11.8
+            max_yel: 14.2
+            max_red: 14.5
+      PEDAL_RAW:  # Raw (unscaled) 16-bit pedal ADC counts
+        !Message
+        priority: 'LOW'
+        period: 20
+        fields:
+          brake_pedal: 'uint16_t'
+          apps_2: 'uint16_t'
+          apps_1: 'uint16_t'
+          mmbepis: 'uint16_t'
+      PEDAL:      # Scaled pedal values. 10000 = 1.0 (full pedal)
+        !Message
+        priority: 'LOW'
+        period: 20
+        fields:
+          average_pedal:
+            type: 'int16_t'
+            units: ''
+            scale: 1000 #so 10,000 = 100percent
+            max_yel: 1.5
+            max_red: 2.0
+            min_yel: -0.1
+            min_red: -0.5
+          apps_1:
+            type: 'int16_t'
+            units: ''
+            scale: 1000 #so 10,000 = 100percent
+            max_yel: 1.5
+            max_red: 2.0
+            min_yel: -0.2
+            min_red: -0.5
+          apps_2:
+            type: 'int16_t'
+            units: ''
+            scale: 1000 #so 10,000 = 100percent
+            max_yel: 1.5
+            max_red: 2.0
+            min_yel: -0.2
+            min_red: -0.5
+          brake:
+            type: 'int16_t'
+            units: ''
+            scale: 1000 #so 10,000 = 100percent
+            max_yel: 2.0
+            max_red: 3.0
+            min_yel: -1.0
+            min_red: -2.0

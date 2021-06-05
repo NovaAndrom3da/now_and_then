@@ -64,3 +64,7 @@ uint16_t pec15(uint8_t *data, uint16_t len) {
     }
     return (remainder * 2); // The CRC15 has a 0 in the LSB so the final value must be multiplied by 2
 }
+
+uint32_t get_timestamp(void) {
+    return 0;
+}

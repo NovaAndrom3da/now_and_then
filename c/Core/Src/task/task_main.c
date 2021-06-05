@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <gpio.h>
 #include "shared_can_defs.h"
-
+#include "subscribe.h"
 
 uint32_t counter = 0;
 
@@ -51,7 +51,7 @@ _Noreturn void start_task_main(void *argument) {
         set_precharge(true);
 
 
-        set_led_4(is_shutdown_closed());
+        set_led_3(m_CAN_MSG_placeholder.fake > 0);
 
         vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(1000));
     }

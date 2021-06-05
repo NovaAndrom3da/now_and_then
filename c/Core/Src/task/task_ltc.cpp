@@ -85,7 +85,7 @@ SegmentBoard* segments;
             }
         }
 
-        set_led_1(err_led_on);
+//        set_led_1(err_led_on);
 
 //        cs_low();
 //        cmd_68(COMMAND_ADCV_MD_DCP_CH | MD_7KHZ_NORMAL_3KHZ_MODE

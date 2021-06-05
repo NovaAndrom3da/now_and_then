@@ -19,6 +19,8 @@ extern const uint16_t crc15Table[256];
 
 uint16_t pec15(uint8_t *data, uint16_t len);
 
+uint32_t get_timestamp(void);
+
 #ifdef __cplusplus
 }
 #endif

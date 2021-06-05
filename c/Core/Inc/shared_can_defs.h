@@ -48,14 +48,28 @@ typedef struct __attribute__((__packed__)) {
 } CAN_MSG_GPIO_T;
 
 
-#define CAN_ID_BMS_analog_in (0x2000000)
-#define CAN_PERIOD_BMS_analog_in (0)
+#define CAN_ID_BMS_analog_in_raw (0x2000000)
+#define CAN_PERIOD_BMS_analog_in_raw (0)
 typedef struct __attribute__((__packed__)) {
 	uint16_t Vbat;
 	uint16_t Vcar;
 	uint16_t current_pos;
 	uint16_t current_neg;
-} CAN_MSG_BMS_analog_in_T;
+} CAN_MSG_BMS_analog_in_raw_T;
+
+
+#define CAN_ID_BMS_current (0x2000001)
+#define CAN_PERIOD_BMS_current (0)
+typedef struct __attribute__((__packed__)) {
+	float amps;
+} CAN_MSG_BMS_current_T;
+
+
+#define CAN_ID_BMS_contactor_volt_delta (0x2000002)
+#define CAN_PERIOD_BMS_contactor_volt_delta (0)
+typedef struct __attribute__((__packed__)) {
+	float volts;
+} CAN_MSG_BMS_contactor_volt_delta_T;
 
 
 // Messages from node (1): INVERTER

@@ -22,10 +22,15 @@ uint16_t current_ls = 0;
 
 uint8_t ready_for_next = 1;
 
+#define current_sense_to_amps 5.1
+#define volt_sense_to_volts 8.37
+
 _Noreturn void start_task_adc(void *argument) {
     HAL_ADC_Start(&hadc1);
 
-    CAN_MSG_BMS_analog_in_T analog_in = { 0 };
+    CAN_MSG_BMS_analog_in_raw_T analog_in = { 0 };
+    CAN_MSG_BMS_current_T current_sense = { 0 };
+    CAN_MSG_BMS_contactor_volt_delta_T volt_sense = { 0 };
 
     while (1) {
         if (1 > 0) {
@@ -38,7 +43,15 @@ _Noreturn void start_task_adc(void *argument) {
         analog_in.current_neg = current_ls;
         analog_in.current_pos = current_hs;
 
-        send_can_msg(CAN_ID_BMS_analog_in, &analog_in, sizeof(CAN_MSG_BMS_analog_in_T));
+        send_can_msg(CAN_ID_BMS_analog_in_raw, &analog_in, sizeof(CAN_MSG_BMS_analog_in_raw_T));
+
+        current_sense.amps = (current_hs - current_ls) / current_sense_to_amps;
+
+        send_can_msg(CAN_ID_BMS_current, &current_sense, sizeof(CAN_MSG_BMS_current_T));
+
+        volt_sense.volts = (vbat - vcar) / volt_sense_to_volts;
+
+        send_can_msg(CAN_ID_BMS_contactor_volt_delta, &volt_sense, sizeof(CAN_MSG_BMS_contactor_volt_delta_T));
 
         vTaskDelay(pdMS_TO_TICKS(1000));
     }

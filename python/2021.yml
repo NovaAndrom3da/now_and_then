@@ -1,0 +1,61 @@
+bitrate: 500000
+priority_levels:
+  TIME_CRITICAL:  0   #   Data that MUST be received in realtime for safety stuff.
+  HIGH:           1   #   Data that should be prioritized above normal.
+  NORMAL:         2   #   Default priority.
+  LOW:            3   #   Messages not necessary for functioning of the car.
+  DEBUG:          4   #   Debug output from nodes, CAN boot loader flashing stuff, config settings, etc.
+nodes:
+  BMS:
+    !Node
+    subscribe:
+      - placeholder
+    publish:
+      IMD_status:
+        !Message
+        id: 0x69
+        priority: 'TIME_CRITICAL'
+        fields:
+          frequency: 'uint32_t'
+      GPIO:
+        !Message
+        id: 0x1234
+        priority: 'NORMAL'
+        fields:
+          bitfield:
+            - bms_fault
+            - bms_fault_latch
+            - HS_closed
+            - LS_closed
+            - shutdown_closed
+            - final_closed
+            - IMD_faulted
+            - IMD_fault_latched
+      BMS_analog_in_raw:
+        !Message
+        priority: 'NORMAL'
+        fields:
+          Vbat: 'uint16_t'
+          Vcar: 'uint16_t'
+          current_pos: 'uint16_t'
+          current_neg: 'uint16_t'
+      BMS_current:
+        !Message
+        priority: 'NORMAL'
+        fields:
+          amps: 'float'
+      BMS_contactor_volt_delta:
+        !Message
+        priority: 'NORMAL'
+        fields:
+          volts: 'float'
+  INVERTER:
+    !Node
+    subscribe:
+      ~
+    publish:
+      placeholder:
+        !Message
+        priority: 'TIME_CRITICAL'
+        fields:
+          fake: 'uint16_t'
