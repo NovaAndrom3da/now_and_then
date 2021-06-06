@@ -20,8 +20,16 @@
 
 #define CAN_NODE_ID_BMS (0)
 #define CAN_NODE_ID_INVERTER (1)
+#define CAN_NODE_ID_VCU (2)
 
 // Messages from node (0): BMS
+#define CAN_ID_DRIVE_STATE (0x3000000)
+#define CAN_PERIOD_DRIVE_STATE (0)
+typedef struct __attribute__((__packed__)) {
+	uint8_t state;
+} CAN_MSG_DRIVE_STATE_T;
+
+
 #define CAN_ID_IMD_status (0x69)
 #define CAN_PERIOD_IMD_status (0)
 typedef struct __attribute__((__packed__)) {
@@ -72,12 +80,84 @@ typedef struct __attribute__((__packed__)) {
 } CAN_MSG_BMS_contactor_volt_delta_T;
 
 
+#define CAN_ID_BMS_status_1 (0x6b0)
+#define CAN_PERIOD_BMS_status_1 (0)
+typedef struct __attribute__((__packed__)) {
+	uint8_t fake;
+	int16_t pack_current;
+	int16_t pack_voltage;
+	uint8_t pack_soc;
+	union status_1_bitfield {
+		struct __attribute__((__packed__)) {
+			unsigned int MPI2_state:1;
+			unsigned int MPI3_state:1;
+			unsigned int MPO2_state:1;
+			unsigned int MPO3_state:1;
+			unsigned int MPO4_state:1;
+			unsigned int MP_enable_state:1;
+			unsigned int MPO1_state:1;
+			unsigned int discharge_relay_state:1;
+			unsigned int charge_relay_state:1;
+			unsigned int charger_safety_state:1;
+			unsigned int MIL_state:1;
+			unsigned int MPI1_state:1;
+			unsigned int alwayson_state:1;
+			unsigned int is_ready_state:1;
+			unsigned int is_charging_state:1;
+			unsigned int pad15:1;
+		};
+		uint16_t AS_UINT;
+	} status_1_bitfield;
+} CAN_MSG_BMS_status_1_T;
+
+
+#define CAN_ID_BMS_status_2 (0x6b1)
+#define CAN_PERIOD_BMS_status_2 (0)
+typedef struct __attribute__((__packed__)) {
+	uint8_t fake;
+	uint16_t pack_DCL;
+	int8_t pack_CCL;
+	int8_t pack_high_temp;
+	int8_t pack_low_temp;
+} CAN_MSG_BMS_status_2_T;
+
+
 // Messages from node (1): INVERTER
 #define CAN_ID_placeholder (0x10000)
 #define CAN_PERIOD_placeholder (0)
 typedef struct __attribute__((__packed__)) {
 	uint16_t fake;
 } CAN_MSG_placeholder_T;
+
+
+// Messages from node (2): VCU
+#define CAN_ID_VCU_pedals (0x20000)
+#define CAN_PERIOD_VCU_pedals (0)
+typedef struct __attribute__((__packed__)) {
+	uint16_t APPS1;
+	uint16_t APPS2;
+	uint16_t BRAKE;
+	uint16_t EXTRA;
+} CAN_MSG_VCU_pedals_T;
+
+
+#define CAN_ID_VCU_switches (0x20001)
+#define CAN_PERIOD_VCU_switches (0)
+typedef struct __attribute__((__packed__)) {
+	union switch_bitfield {
+		struct __attribute__((__packed__)) {
+			unsigned int button1:1;
+			unsigned int button2:1;
+			unsigned int button3:1;
+			unsigned int button4:1;
+			unsigned int button5:1;
+			unsigned int button6:1;
+			unsigned int button7:1;
+			unsigned int button8:1;
+		};
+		uint8_t AS_UINT;
+	} switch_bitfield;
+} CAN_MSG_VCU_switches_T;
 
 
 

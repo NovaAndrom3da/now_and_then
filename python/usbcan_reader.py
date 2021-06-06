@@ -20,11 +20,15 @@ if __name__ == "__main__":
     counter = 0
     for msg in bus:
         try:
-            # print(msg, flush=True)
-            message = msg_dict[msg.arbitration_id]
-            decoded = message.decode(msg.data)
-            print(decoded, flush=True)
-            counter += 1
+            if msg.arbitration_id == 0x20000 or msg.arbitration_id == 0x20001:
+                # print(msg, flush=True)
+                # print(msg, flush=True)
+                message = msg_dict[msg.arbitration_id]
+                decoded = message.decode(msg.data)
+                print(decoded, flush=True)
+                counter += 1
+            else:
+                pass
 
         except Exception as e:
             print(e, flush=True)

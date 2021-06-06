@@ -9,8 +9,14 @@ nodes:
   BMS:
     !Node
     subscribe:
-      - placeholder
+      - VCU_pedals
+      - VCU_switches
     publish:
+      DRIVE_STATE:
+        !Message
+        priority: 'LOW'
+        fields:
+          state: 'uint8_t'
       IMD_status:
         !Message
         id: 0x69
@@ -49,6 +55,41 @@ nodes:
         priority: 'NORMAL'
         fields:
           volts: 'float'
+      BMS_status_1:
+        !Message
+        priority: 'NORMAL'
+        id: 0x6B0
+        fields:
+          fake: 'uint8_t'
+          pack_current: 'int16_t'
+          pack_voltage: 'int16_t'
+          pack_soc: 'uint8_t'
+          status_1_bitfield:
+            - MPI2_state
+            - MPI3_state
+            - MPO2_state
+            - MPO3_state
+            - MPO4_state
+            - MP_enable_state
+            - MPO1_state
+            - discharge_relay_state
+            - charge_relay_state
+            - charger_safety_state
+            - MIL_state
+            - MPI1_state
+            - alwayson_state
+            - is_ready_state
+            - is_charging_state
+      BMS_status_2:
+        !Message
+        priority: 'NORMAL'
+        id: 0x6B1
+        fields:
+          fake: 'uint8_t'
+          pack_DCL: 'uint16_t'
+          pack_CCL: 'int8_t'
+          pack_high_temp: 'int8_t'
+          pack_low_temp: 'int8_t'
   INVERTER:
     !Node
     subscribe:
@@ -59,3 +100,29 @@ nodes:
         priority: 'TIME_CRITICAL'
         fields:
           fake: 'uint16_t'
+  VCU:
+    !Node
+    subscribe:
+      ~
+    publish:
+      VCU_pedals:
+        !Message
+        priority: 'TIME_CRITICAL'
+        fields:
+          APPS1: 'uint16_t'
+          APPS2: 'uint16_t'
+          BRAKE: 'uint16_t'
+          EXTRA: 'uint16_t'
+      VCU_switches:
+        !Message
+        priority: 'TIME_CRITICAL'
+        fields:
+          switch_bitfield:
+            - button1
+            - button2
+            - button3
+            - button4
+            - button5
+            - button6
+            - button7
+            - button8

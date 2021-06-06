@@ -14,7 +14,10 @@
 
 void eat_new_data(CAN_rx_t* recv);
 
-extern CAN_MSG_placeholder_T m_CAN_MSG_placeholder;
-extern uint32_t placeholder_rx_time;
+extern CAN_MSG_VCU_pedals_T m_CAN_MSG_VCU_pedals;
+extern uint32_t VCU_pedals_rx_time;
+
+extern CAN_MSG_VCU_switches_T m_CAN_MSG_VCU_switches;
+extern uint32_t VCU_switches_rx_time;
 
 #endif
