@@ -68,3 +68,20 @@ uint16_t pec15(uint8_t *data, uint16_t len) {
 uint32_t get_timestamp(void) {
     return 0;
 }
+
+
+#define current_sense_to_deciamps 0.51
+
+int16_t adc_readings_to_deciamps(uint32_t adc_plus, uint32_t adc_minus) {
+    int16_t diff = adc_plus - adc_minus;
+
+    return diff / current_sense_to_deciamps;
+}
+
+#define volt_sense_to_volts 8.37
+
+int16_t adc_readings_to_volt_delta(uint32_t adc_vcar, uint32_t adc_vbat) {
+    int16_t diff = adc_vbat - adc_vcar;
+
+    return diff / volt_sense_to_volts;
+}
