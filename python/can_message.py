@@ -105,6 +105,8 @@ class CanMessage(yaml.YAMLObject):
                     unpacked[bitname] = packed_bitfield[i // 8] >> (7 - i % 8) & 1
 
                 unpacked.pop(f.name)
+            if f.enum_values != None:
+                unpacked[f.name] = f.enum_values[unpacked[f.name]]
 
         return unpacked
 
