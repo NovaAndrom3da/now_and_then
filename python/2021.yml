@@ -1,4 +1,4 @@
-bitrate: 500000
+bitrate: 250000
 priority_levels:
   TIME_CRITICAL:  0   #   Data that MUST be received in realtime for safety stuff.
   HIGH:           1   #   Data that should be prioritized above normal.
@@ -12,11 +12,42 @@ nodes:
       - VCU_pedals
       - VCU_switches
     publish:
+      INV_COMMAND:
+        !Message
+        id: 0x0C0
+        priority: 'TIME_CRITICAL'
+        period: 500
+        fields:
+          torque_command:
+            type: 'int16_t'
+          speed_command:
+            type: 'int16_t'
+          direction:
+            type: 'uint8_t'
+            enum:
+              - REVERSE
+              - FORWARD
+          enable_flags:
+            - inverter_enable
+            - inverter_discharge
+            - speed_mode_enable
+          torque_limit:
+            type: 'int16_t'
       DRIVE_STATE:
         !Message
         priority: 'LOW'
         fields:
-          state: 'uint8_t'
+          vehicle_state:
+            type: 'uint8_t'
+            enum:
+              - STARTUP
+              - SHUTDOWN_OPEN
+              - SHUTDOWN_CLOSED
+              - PRECHARGING
+              - PRECHARGE_DONE
+              - DRIVING
+              - HARD_FAULT
+              - SOFT_FAULT
       IMD_status:
         !Message
         id: 0x69
@@ -90,16 +121,248 @@ nodes:
           pack_CCL: 'int8_t'
           pack_high_temp: 'int8_t'
           pack_low_temp: 'int8_t'
-  INVERTER:
+  Inverter:
     !Node
     subscribe:
       ~
     publish:
-      placeholder:
+      INV_TEMPERATURES1:
         !Message
-        priority: 'TIME_CRITICAL'
+        id: 0x0A0
+        priority: 'NORMAL'
         fields:
-          fake: 'uint16_t'
+          IGBT_A:
+            type: 'int16_t'
+            scale: 10
+          IGBT_B:
+            type: 'int16_t'
+            scale: 10
+          IGBT_C:
+            type: 'int16_t'
+            scale: 10
+          gate_drive:
+            type: 'int16_t'
+            scale: 10
+      INV_TEMPERATURES2:
+        !Message
+        id: 0x0A1
+        priority: 'NORMAL'
+        fields:
+          control_board:
+            type: 'int16_t'
+            scale: 10
+          RTD_1:
+            type: 'int16_t'
+            scale: 10
+          RTD_2:
+            type: 'int16_t'
+            scale: 10
+          RTD_3:
+            type: 'int16_t'
+            scale: 10
+      INV_TEMPERATURES3:
+        !Message
+        id: 0x0A2
+        priority: 'NORMAL'
+        fields:
+          RTD_4:
+            type: 'int16_t'
+            scale: 10
+          RTD_5:
+            type: 'int16_t'
+            scale: 10
+          motor:
+            type: 'int16_t'
+            scale: 10
+          torque_shudder:
+            type: 'int16_t'
+            scale: 10
+      INV_MOTOR_POSITION:
+        !Message
+        id: 0x0A5
+        priority: 'NORMAL'
+        fields:
+          electrical_angle:
+            type: 'int16_t'
+            scale: 10
+          motor_speed:
+            type: 'int16_t'
+          output_frequency:
+            type: 'int16_t'
+            scale: 10
+          delta_resolver_filtered:
+            type: 'int16_t'
+            scale: 10
+      INV_CURRENT:
+        !Message
+        id: 0x0A6
+        priority: 'NORMAL'
+        fields:
+          phase_A:
+            type: 'int16_t'
+            scale: 10
+          phase_B:
+            type: 'int16_t'
+            scale: 10
+          phase_C:
+            type: 'int16_t'
+            scale: 10
+          DC_bus:
+            type: 'int16_t'
+            scale: 10
+      INV_VOLTAGE:
+        !Message
+        id: 0x0A7
+        priority: 'NORMAL'
+        fields:
+          DC_bus:
+            type: 'int16_t'
+            scale: 10
+          output:
+            type: 'int16_t'
+            scale: 10
+          VAB_Vd:
+            type: 'int16_t'
+            scale: 10
+          VBC_Vq:
+            type: 'int16_t'
+            scale: 10
+      INV_FLUX:
+        !Message
+        id: 0x0A8
+        priority: 'NORMAL'
+        fields:
+          flux_command:
+            type: 'int16_t'
+            scale: 1000
+          flux_feedback:
+            type: 'int16_t'
+            scale: 1000
+          LD_feedback:
+            type: 'int16_t'
+            scale: 10
+          LQ_feedback:
+            type: 'int16_t'
+            scale: 10
+      INV_INTERNAL_VOLTS:
+        !Message
+        id: 0x0A9
+        priority: 'NORMAL'
+        fields:
+          ref1v5:
+            type: 'int16_t'
+            scale: 100
+          ref2v5:
+            type: 'int16_t'
+            scale: 100
+          ref5v:
+            type: 'int16_t'
+            scale: 100
+          ref12v:
+            type: 'int16_t'
+            scale: 100
+      INV_INTERNAL_STATES:
+        !Message
+        id: 0x0AA
+        priority: 'NORMAL'
+        fields:
+          VSM_state:
+            - VSM_start
+            - pre_charge_init
+            - pre_charge_active
+            - pre_charge_complete
+            - VSM_wait
+            - VSM_ready
+            - motor_running
+            - blink_fault_code
+            - pad8
+            - pad9
+            - pad10
+            - pad11
+            - pad12
+            - pad13
+            - shutdown
+            - need_power_cycle
+          inverter_state:
+            - power_on
+            - stop
+            - open_loop
+            - closed_loop
+            - wait
+            - internal_5
+            - internal_6
+            - internal_7
+            - idle_run
+            - idle_stop
+            - internal_10
+            - internal_11
+            - internal_12
+          relay_state:
+            - relay_1_on
+            - relay_2_on
+            - relay_3_on
+            - relay_4_on
+            - relay_5_on
+            - relay_6_on
+          inverter_mode: 'uint8_t' # this a special boy that is all dumb lmao
+          inverter_command_mode:
+            type: 'uint8_t'
+            enum:
+              - CAN
+              - VSM
+          inverter_enable_lockout:
+            - inverter_enabled
+            - pad1
+            - pad2
+            - pad3
+            - pad4
+            - pad5
+            - pad6
+            - inverter_locked_out
+          inverter_more_flags:
+            - direction_is_forward
+            - BMS_active
+            - BMS_is_limit
+      INV_TORQUE_TIMER:
+        !Message
+        id: 0x0AC
+        priority: 'NORMAL'
+        fields:
+          torque_command:
+            type: 'uint16_t'
+            scale: 10
+          estimated_torque:
+            type: 'uint16_t'
+            scale: 10
+          timer:
+            type: 'uint32_t'
+            scale: 0.003
+      INV_FLUX_WEAKENING:
+        !Message
+        id: 0x0AD
+        priority: 'NORMAL'
+        fields:
+          modulation_index:
+            type: 'int16_t'
+            scale: 100
+          flux_weakening_output:
+            type: 'int16_t'
+            scale: 10
+          LD_command:
+            type: 'int16_t'
+            scale: 10
+          LQ_command:
+            type: 'int16_t'
+            scale: 10
+      INV_FIRMWARE_INFO:
+        !Message
+        id: 0x0AE
+        priority: 'LOW'
+        fields:
+          EEPROM_version: 'uint32_t'
+          software_version: 'uint32_t'
+          date_mmdd: 'uint32_t'
+          date_yyyy: 'uint32_t'
   VCU:
     !Node
     subscribe:
@@ -126,3 +389,23 @@ nodes:
             - button6
             - button7
             - button8
+  Charger:
+    !Node
+    subscribe:
+      ~
+    publish:
+      charger_stateus:
+        !Message
+        id: 0x18FF50E5
+        fields:
+          output_voltage: 'uint16_t'
+          output_current: 'int16_t'
+          status_flags:
+            - hardware_failure
+            - over_temperature
+            - input_volt_error
+            - stating_state
+            - comm_state
+          pad_byte1: 'uint8_t'
+          pad_byte2: 'uint8_t'
+          pad_byte3: 'uint8_t'

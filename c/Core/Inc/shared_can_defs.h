@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-#define CAN_BITRATE (500000)
+#define CAN_BITRATE (250000)
 
 #define CAN_PRIORITY_LEVEL_TIME_CRITICAL (0)
 #define CAN_PRIORITY_LEVEL_HIGH (1)
@@ -19,15 +19,53 @@
 #define CAN_NUM_PRIORITY_LEVELS (5)
 
 #define CAN_NODE_ID_BMS (0)
-#define CAN_NODE_ID_INVERTER (1)
+#define CAN_NODE_ID_Inverter (1)
 #define CAN_NODE_ID_VCU (2)
+#define CAN_NODE_ID_Charger (3)
 
 // Messages from node (0): BMS
+#define CAN_ID_INV_COMMAND (0xc0)
+#define CAN_PERIOD_INV_COMMAND (500)
+typedef struct __attribute__((__packed__)) {
+	int16_t torque_command;
+	int16_t speed_command;
+	uint8_t direction;
+	union enable_flags {
+		struct __attribute__((__packed__)) {
+			unsigned int inverter_enable:1;
+			unsigned int inverter_discharge:1;
+			unsigned int speed_mode_enable:1;
+			unsigned int pad3:1;
+			unsigned int pad4:1;
+			unsigned int pad5:1;
+			unsigned int pad6:1;
+			unsigned int pad7:1;
+		};
+		uint8_t AS_UINT;
+	} enable_flags;
+	int16_t torque_limit;
+} CAN_MSG_INV_COMMAND_T;
+typedef enum {
+	DIRECTION_REVERSE = 0,
+	DIRECTION_FORWARD = 1,
+} direction_t;
+
+
 #define CAN_ID_DRIVE_STATE (0x3000000)
 #define CAN_PERIOD_DRIVE_STATE (0)
 typedef struct __attribute__((__packed__)) {
-	uint8_t state;
+	uint8_t vehicle_state;
 } CAN_MSG_DRIVE_STATE_T;
+typedef enum {
+	VEHICLE_STATE_STARTUP = 0,
+	VEHICLE_STATE_SHUTDOWN_OPEN = 1,
+	VEHICLE_STATE_SHUTDOWN_CLOSED = 2,
+	VEHICLE_STATE_PRECHARGING = 3,
+	VEHICLE_STATE_PRECHARGE_DONE = 4,
+	VEHICLE_STATE_DRIVING = 5,
+	VEHICLE_STATE_HARD_FAULT = 6,
+	VEHICLE_STATE_SOFT_FAULT = 7,
+} vehicle_state_t;
 
 
 #define CAN_ID_IMD_status (0x69)
@@ -122,12 +160,245 @@ typedef struct __attribute__((__packed__)) {
 } CAN_MSG_BMS_status_2_T;
 
 
-// Messages from node (1): INVERTER
-#define CAN_ID_placeholder (0x10000)
-#define CAN_PERIOD_placeholder (0)
+// Messages from node (1): Inverter
+#define CAN_ID_INV_TEMPERATURES1 (0xa0)
+#define CAN_PERIOD_INV_TEMPERATURES1 (0)
 typedef struct __attribute__((__packed__)) {
-	uint16_t fake;
-} CAN_MSG_placeholder_T;
+	int16_t IGBT_A;
+	int16_t IGBT_B;
+	int16_t IGBT_C;
+	int16_t gate_drive;
+} CAN_MSG_INV_TEMPERATURES1_T;
+#define CAN_SCALE_INV_TEMPERATURES1_IGBT_A ((float) 10)
+#define CAN_SCALE_INV_TEMPERATURES1_IGBT_B ((float) 10)
+#define CAN_SCALE_INV_TEMPERATURES1_IGBT_C ((float) 10)
+#define CAN_SCALE_INV_TEMPERATURES1_gate_drive ((float) 10)
+
+
+#define CAN_ID_INV_TEMPERATURES2 (0xa1)
+#define CAN_PERIOD_INV_TEMPERATURES2 (0)
+typedef struct __attribute__((__packed__)) {
+	int16_t control_board;
+	int16_t RTD_1;
+	int16_t RTD_2;
+	int16_t RTD_3;
+} CAN_MSG_INV_TEMPERATURES2_T;
+#define CAN_SCALE_INV_TEMPERATURES2_control_board ((float) 10)
+#define CAN_SCALE_INV_TEMPERATURES2_RTD_1 ((float) 10)
+#define CAN_SCALE_INV_TEMPERATURES2_RTD_2 ((float) 10)
+#define CAN_SCALE_INV_TEMPERATURES2_RTD_3 ((float) 10)
+
+
+#define CAN_ID_INV_TEMPERATURES3 (0xa2)
+#define CAN_PERIOD_INV_TEMPERATURES3 (0)
+typedef struct __attribute__((__packed__)) {
+	int16_t RTD_4;
+	int16_t RTD_5;
+	int16_t motor;
+	int16_t torque_shudder;
+} CAN_MSG_INV_TEMPERATURES3_T;
+#define CAN_SCALE_INV_TEMPERATURES3_RTD_4 ((float) 10)
+#define CAN_SCALE_INV_TEMPERATURES3_RTD_5 ((float) 10)
+#define CAN_SCALE_INV_TEMPERATURES3_motor ((float) 10)
+#define CAN_SCALE_INV_TEMPERATURES3_torque_shudder ((float) 10)
+
+
+#define CAN_ID_INV_MOTOR_POSITION (0xa5)
+#define CAN_PERIOD_INV_MOTOR_POSITION (0)
+typedef struct __attribute__((__packed__)) {
+	int16_t electrical_angle;
+	int16_t motor_speed;
+	int16_t output_frequency;
+	int16_t delta_resolver_filtered;
+} CAN_MSG_INV_MOTOR_POSITION_T;
+#define CAN_SCALE_INV_MOTOR_POSITION_electrical_angle ((float) 10)
+#define CAN_SCALE_INV_MOTOR_POSITION_output_frequency ((float) 10)
+#define CAN_SCALE_INV_MOTOR_POSITION_delta_resolver_filtered ((float) 10)
+
+
+#define CAN_ID_INV_CURRENT (0xa6)
+#define CAN_PERIOD_INV_CURRENT (0)
+typedef struct __attribute__((__packed__)) {
+	int16_t phase_A;
+	int16_t phase_B;
+	int16_t phase_C;
+	int16_t DC_bus;
+} CAN_MSG_INV_CURRENT_T;
+#define CAN_SCALE_INV_CURRENT_phase_A ((float) 10)
+#define CAN_SCALE_INV_CURRENT_phase_B ((float) 10)
+#define CAN_SCALE_INV_CURRENT_phase_C ((float) 10)
+#define CAN_SCALE_INV_CURRENT_DC_bus ((float) 10)
+
+
+#define CAN_ID_INV_VOLTAGE (0xa7)
+#define CAN_PERIOD_INV_VOLTAGE (0)
+typedef struct __attribute__((__packed__)) {
+	int16_t DC_bus;
+	int16_t output;
+	int16_t VAB_Vd;
+	int16_t VBC_Vq;
+} CAN_MSG_INV_VOLTAGE_T;
+#define CAN_SCALE_INV_VOLTAGE_DC_bus ((float) 10)
+#define CAN_SCALE_INV_VOLTAGE_output ((float) 10)
+#define CAN_SCALE_INV_VOLTAGE_VAB_Vd ((float) 10)
+#define CAN_SCALE_INV_VOLTAGE_VBC_Vq ((float) 10)
+
+
+#define CAN_ID_INV_FLUX (0xa8)
+#define CAN_PERIOD_INV_FLUX (0)
+typedef struct __attribute__((__packed__)) {
+	int16_t flux_command;
+	int16_t flux_feedback;
+	int16_t LD_feedback;
+	int16_t LQ_feedback;
+} CAN_MSG_INV_FLUX_T;
+#define CAN_SCALE_INV_FLUX_flux_command ((float) 1000)
+#define CAN_SCALE_INV_FLUX_flux_feedback ((float) 1000)
+#define CAN_SCALE_INV_FLUX_LD_feedback ((float) 10)
+#define CAN_SCALE_INV_FLUX_LQ_feedback ((float) 10)
+
+
+#define CAN_ID_INV_INTERNAL_VOLTS (0xa9)
+#define CAN_PERIOD_INV_INTERNAL_VOLTS (0)
+typedef struct __attribute__((__packed__)) {
+	int16_t ref1v5;
+	int16_t ref2v5;
+	int16_t ref5v;
+	int16_t ref12v;
+} CAN_MSG_INV_INTERNAL_VOLTS_T;
+#define CAN_SCALE_INV_INTERNAL_VOLTS_ref1v5 ((float) 100)
+#define CAN_SCALE_INV_INTERNAL_VOLTS_ref2v5 ((float) 100)
+#define CAN_SCALE_INV_INTERNAL_VOLTS_ref5v ((float) 100)
+#define CAN_SCALE_INV_INTERNAL_VOLTS_ref12v ((float) 100)
+
+
+#define CAN_ID_INV_INTERNAL_STATES (0xaa)
+#define CAN_PERIOD_INV_INTERNAL_STATES (0)
+typedef struct __attribute__((__packed__)) {
+	union VSM_state {
+		struct __attribute__((__packed__)) {
+			unsigned int VSM_start:1;
+			unsigned int pre_charge_init:1;
+			unsigned int pre_charge_active:1;
+			unsigned int pre_charge_complete:1;
+			unsigned int VSM_wait:1;
+			unsigned int VSM_ready:1;
+			unsigned int motor_running:1;
+			unsigned int blink_fault_code:1;
+			unsigned int pad8:1;
+			unsigned int pad9:1;
+			unsigned int pad10:1;
+			unsigned int pad11:1;
+			unsigned int pad12:1;
+			unsigned int pad13:1;
+			unsigned int shutdown:1;
+			unsigned int need_power_cycle:1;
+		};
+		uint16_t AS_UINT;
+	} VSM_state;
+	union inverter_state {
+		struct __attribute__((__packed__)) {
+			unsigned int power_on:1;
+			unsigned int stop:1;
+			unsigned int open_loop:1;
+			unsigned int closed_loop:1;
+			unsigned int wait:1;
+			unsigned int internal_5:1;
+			unsigned int internal_6:1;
+			unsigned int internal_7:1;
+			unsigned int idle_run:1;
+			unsigned int idle_stop:1;
+			unsigned int internal_10:1;
+			unsigned int internal_11:1;
+			unsigned int internal_12:1;
+			unsigned int pad13:1;
+			unsigned int pad14:1;
+			unsigned int pad15:1;
+		};
+		uint16_t AS_UINT;
+	} inverter_state;
+	union relay_state {
+		struct __attribute__((__packed__)) {
+			unsigned int relay_1_on:1;
+			unsigned int relay_2_on:1;
+			unsigned int relay_3_on:1;
+			unsigned int relay_4_on:1;
+			unsigned int relay_5_on:1;
+			unsigned int relay_6_on:1;
+			unsigned int pad6:1;
+			unsigned int pad7:1;
+		};
+		uint8_t AS_UINT;
+	} relay_state;
+	uint8_t inverter_mode;
+	uint8_t inverter_command_mode;
+	union inverter_enable_lockout {
+		struct __attribute__((__packed__)) {
+			unsigned int inverter_enabled:1;
+			unsigned int pad1:1;
+			unsigned int pad2:1;
+			unsigned int pad3:1;
+			unsigned int pad4:1;
+			unsigned int pad5:1;
+			unsigned int pad6:1;
+			unsigned int inverter_locked_out:1;
+		};
+		uint8_t AS_UINT;
+	} inverter_enable_lockout;
+	union inverter_more_flags {
+		struct __attribute__((__packed__)) {
+			unsigned int direction_is_forward:1;
+			unsigned int BMS_active:1;
+			unsigned int BMS_is_limit:1;
+			unsigned int pad3:1;
+			unsigned int pad4:1;
+			unsigned int pad5:1;
+			unsigned int pad6:1;
+			unsigned int pad7:1;
+		};
+		uint8_t AS_UINT;
+	} inverter_more_flags;
+} CAN_MSG_INV_INTERNAL_STATES_T;
+typedef enum {
+	INVERTER_COMMAND_MODE_CAN = 0,
+	INVERTER_COMMAND_MODE_VSM = 1,
+} inverter_command_mode_t;
+
+
+#define CAN_ID_INV_TORQUE_TIMER (0xac)
+#define CAN_PERIOD_INV_TORQUE_TIMER (0)
+typedef struct __attribute__((__packed__)) {
+	uint16_t torque_command;
+	uint16_t estimated_torque;
+	uint32_t timer;
+} CAN_MSG_INV_TORQUE_TIMER_T;
+#define CAN_SCALE_INV_TORQUE_TIMER_torque_command ((float) 10)
+#define CAN_SCALE_INV_TORQUE_TIMER_estimated_torque ((float) 10)
+#define CAN_SCALE_INV_TORQUE_TIMER_timer ((float) 0.003)
+
+
+#define CAN_ID_INV_FLUX_WEAKENING (0xad)
+#define CAN_PERIOD_INV_FLUX_WEAKENING (0)
+typedef struct __attribute__((__packed__)) {
+	int16_t modulation_index;
+	int16_t flux_weakening_output;
+	int16_t LD_command;
+	int16_t LQ_command;
+} CAN_MSG_INV_FLUX_WEAKENING_T;
+#define CAN_SCALE_INV_FLUX_WEAKENING_modulation_index ((float) 100)
+#define CAN_SCALE_INV_FLUX_WEAKENING_flux_weakening_output ((float) 10)
+#define CAN_SCALE_INV_FLUX_WEAKENING_LD_command ((float) 10)
+#define CAN_SCALE_INV_FLUX_WEAKENING_LQ_command ((float) 10)
+
+
+#define CAN_ID_INV_FIRMWARE_INFO (0xae)
+#define CAN_PERIOD_INV_FIRMWARE_INFO (0)
+typedef struct __attribute__((__packed__)) {
+	uint32_t EEPROM_version;
+	uint32_t software_version;
+	uint32_t date_mmdd;
+	uint32_t date_yyyy;
+} CAN_MSG_INV_FIRMWARE_INFO_T;
 
 
 // Messages from node (2): VCU
@@ -158,6 +429,31 @@ typedef struct __attribute__((__packed__)) {
 		uint8_t AS_UINT;
 	} switch_bitfield;
 } CAN_MSG_VCU_switches_T;
+
+
+// Messages from node (3): Charger
+#define CAN_ID_charger_stateus (0x18ff50e5)
+#define CAN_PERIOD_charger_stateus (0)
+typedef struct __attribute__((__packed__)) {
+	uint16_t output_voltage;
+	int16_t output_current;
+	union status_flags {
+		struct __attribute__((__packed__)) {
+			unsigned int hardware_failure:1;
+			unsigned int over_temperature:1;
+			unsigned int input_volt_error:1;
+			unsigned int stating_state:1;
+			unsigned int comm_state:1;
+			unsigned int pad5:1;
+			unsigned int pad6:1;
+			unsigned int pad7:1;
+		};
+		uint8_t AS_UINT;
+	} status_flags;
+	uint8_t pad_byte1;
+	uint8_t pad_byte2;
+	uint8_t pad_byte3;
+} CAN_MSG_charger_stateus_T;
 
 
 
