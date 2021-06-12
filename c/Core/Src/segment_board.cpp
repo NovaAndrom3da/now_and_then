@@ -20,8 +20,6 @@ SegmentBoard::SegmentBoard() {
     registers.COMM[3] = 0x09;
     registers.COMM[4] = 0xF0;
     registers.COMM[5] = 0x09;
-
-    open_wires = 0;
 }
 
 void SegmentBoard::set_leds(uint8_t state) {
@@ -61,30 +59,28 @@ void SegmentBoard::update_volts(uint8_t cmd, uint8_t *buffer) {
         temp += cell_volt;
     }
     segment_voltage = temp / 10;
+
+    uint16_t lo = 0xffff;
+    for (int i = 0; i < 12; i++) {
+        if (cell_volts[i] < lo) {
+            lo = cell_volts[i];
+        }
+    }
+    lowest_voltage = lo;
+
+    uint16_t hi = 0x0;
+    for (int i = 0; i < 12; i++) {
+        if (cell_volts[i] > hi) {
+            hi = cell_volts[i];
+        }
+    }
+    highest_voltage = hi;
 }
 
-void SegmentBoard::calculate_balance() {
-    // look through voltage array, figure out which balancing transistors to enable
-    uint16_t lowest_volt = 65535;
-    uint16_t highest_volt = 0;
-    for (uint16_t cell_volt : cell_volts) {
-        if (cell_volt < lowest_volt) {
-            lowest_volt = cell_volt;
-        }
-        if (cell_volt > highest_volt) {
-            highest_volt = cell_volt;
-        }
-    }
-
-    if (highest_volt - lowest_volt < volt_delta_limit) {
-        need_balance = false;
-    } else if (highest_volt - lowest_volt > volt_delta_limit * 2) {
-        need_balance = true;
-    }
-
-    if (need_balance && want_balance) {
+void SegmentBoard::calculate_balance(uint16_t target_volt) {
+    if (want_balance) {
         for (int i = 0; i < 12; i++) {
-            if (cell_volts[i] > lowest_volt + volt_delta_limit && cell_volts[i] > 30000) {
+            if (cell_volts[i] > target_volt + balance_volt_target && cell_volts[i] > 30000) {
                 set_balance_transistor(i, true);
             } else {
                 set_balance_transistor(i, false);
@@ -181,6 +177,43 @@ float temp_conversion(uint16_t raw) {
 void SegmentBoard::update_temps(uint8_t *buffer) {
     cell_temps[mux_state] = temp_conversion(buffer[0] + (buffer[1] << 8));
     cell_temps[mux_state + 16] = temp_conversion(buffer[2] + (buffer[3] << 8));
+
+    float total = 0;
+    uint8_t n = 0;
+    for (int i = 0; i < 24; i++) {
+        if (cell_temps[i] < 100 && cell_temps[i] > 0) {
+            total += cell_temps[i];
+            n++;
+        }
+    }
+
+    segment_temperature = total / n;
+}
+
+uint16_t SegmentBoard::lowest_cell_volt(void) {
+    return lowest_voltage;
+}
+
+uint16_t SegmentBoard::highest_cell_volt(void) {
+    return highest_voltage;
+}
+
+void SegmentBoard::set_allow_balance(bool do_balance) {
+    want_balance = do_balance;
+
+    if (!want_balance) {
+        for (int i = 0; i < 12; i++) {
+            set_balance_transistor(i, false);
+        }
+    }
+}
+
+void SegmentBoard::disable_balance() {
+    want_balance = false;
+
+    for (int i = 0; i < 12; i++) {
+        set_balance_transistor(i, false);
+    }
 }
 
 SegmentBoard::~SegmentBoard() = default;

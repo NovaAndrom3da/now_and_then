@@ -49,16 +49,14 @@ void cmd_68(uint16_t cmd) {
 }
 
 void write_68(uint8_t *data, uint8_t data_len) {
-//    cmd_68(cmd);
-
     if (data_len > 0) {
         uint16_t temp_pec = pec15(data, 6);
         uint8_t pec[2];
         pec[0] = temp_pec >> 8;
         pec[1] = temp_pec & 0x00FF;
 
-        HAL_SPI_Transmit(&hspi1, data, data_len, 100);
-        HAL_SPI_Transmit(&hspi1, pec, 2, 100);
+        HAL_SPI_Transmit(&hspi1, data, data_len, 500);
+        HAL_SPI_Transmit(&hspi1, pec, 2, 500);
     }
 }
 

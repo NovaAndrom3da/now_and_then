@@ -13,13 +13,16 @@
  * The main task will send instructions once, it is up to task_ltc to handle
  * repeating SPI commands the appropriate number of times.
  */
-#define num_segments 1
+#define num_segments 8
 
 void task_ltc_setup(void);
 void wake_ltc_routine(void);
 void write_comm_routine(void);
+void write_config_routine(void);
+void update_mux_routine(void);
 void read_cvr_routine(void);
 void read_temp_routine(void);
+void read_all_temp_routine();
 
 //void start_task_ltc(void *argument);
 extern "C" [[noreturn]] void start_task_ltc(void *argument);
