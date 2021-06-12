@@ -16,7 +16,7 @@ QueueHandle_t ADC_Q;
 
 uint32_t adc_dma_buffer[4];
 
-_Noreturn void start_task_adc(void *argument) {
+[[noreturn]] void start_task_adc(void *argument) {
     HAL_ADC_Start(&hadc1);
 
     ADC_Q = xQueueCreate(1, sizeof(ADC_message));
@@ -38,5 +38,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
     m.current_plus = adc_dma_buffer[2];
     m.current_minus = adc_dma_buffer[3];
 
-    xQueueSendToFrontFromISR(ADC_Q, &m, NULL);
+    BaseType_t ret = xQueueOverwriteFromISR(ADC_Q, &m, NULL);
+
+    return;
 }

@@ -11,6 +11,7 @@ nodes:
     subscribe:
       - VCU_pedals
       - VCU_switches
+      - charger_control
     publish:
       INV_COMMAND:
         !Message
@@ -48,6 +49,7 @@ nodes:
               - DRIVING
               - HARD_FAULT
               - SOFT_FAULT
+              - BATTERY_CHARGE
       IMD_status:
         !Message
         id: 0x69
@@ -89,32 +91,13 @@ nodes:
       BMS_status_1:
         !Message
         priority: 'NORMAL'
-        id: 0x6B0
         fields:
-          fake: 'uint8_t'
           pack_current: 'int16_t'
           pack_voltage: 'int16_t'
           pack_soc: 'uint8_t'
-          status_1_bitfield:
-            - MPI2_state
-            - MPI3_state
-            - MPO2_state
-            - MPO3_state
-            - MPO4_state
-            - MP_enable_state
-            - MPO1_state
-            - discharge_relay_state
-            - charge_relay_state
-            - charger_safety_state
-            - MIL_state
-            - MPI1_state
-            - alwayson_state
-            - is_ready_state
-            - is_charging_state
       BMS_status_2:
         !Message
         priority: 'NORMAL'
-        id: 0x6B1
         fields:
           fake: 'uint8_t'
           pack_DCL: 'uint16_t'
@@ -394,7 +377,7 @@ nodes:
     subscribe:
       ~
     publish:
-      charger_stateus:
+      charger_status:
         !Message
         id: 0x18FF50E5
         fields:
@@ -406,6 +389,25 @@ nodes:
             - input_volt_error
             - stating_state
             - comm_state
+          pad_byte1: 'uint8_t'
+          pad_byte2: 'uint8_t'
+          pad_byte3: 'uint8_t'
+  laptop:
+    !Node
+    subscribe:
+      ~
+    publish:
+      charger_control:
+        !Message
+        id: 0x1806E5F4
+        fields:
+          max_voltage: 'uint16_t'
+          max_amps: 'uint16_t'
+          charger_enabled:
+            type: 'uint8_t'
+            enum:
+              - charge
+              - no_charge
           pad_byte1: 'uint8_t'
           pad_byte2: 'uint8_t'
           pad_byte3: 'uint8_t'

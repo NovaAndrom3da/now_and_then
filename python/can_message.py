@@ -108,7 +108,7 @@ class CanMessage(yaml.YAMLObject):
             if f.enum_values != None:
                 unpacked[f.name] = f.enum_values[unpacked[f.name]]
 
-        return unpacked
+        return {k: v for k, v in unpacked.items() if 'pad' not in k}
 
     def __repr__(self):
         return "\n\tname={0} id={1} priority={2} interval={3}" \

@@ -9,7 +9,14 @@
 void delay_microseconds(uint32_t u_sec) {
     taskENTER_CRITICAL();
 
-    uint32_t cycles = u_sec * 5;
+//    uint32_t ticks = pdMS_TO_TICKS(u_sec / 1000);
+//    if (ticks > 0) {
+//        vTaskDelay(ticks * 10);
+//    } else {
+//        vTaskDelay(10);
+//    }
+
+    uint32_t cycles = u_sec * 10;
     for (int i = 0; i < cycles; i++) {
         __NOP();
     }
@@ -21,10 +28,17 @@ void delay_microseconds_ISR(uint32_t u_sec) {
     UBaseType_t uxSavedInterruptStatus;
     uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
 
-    uint32_t cycles = u_sec * 12;
-    for (int i = 0; i < cycles; i++) {
-        __NOP();
+    uint32_t ticks = pdMS_TO_TICKS(u_sec / 1000);
+    if (ticks > 0) {
+        vTaskDelay(ticks);
+    } else {
+        vTaskDelay(1);
     }
+
+//    uint32_t cycles = u_sec * 12;
+//    for (int i = 0; i < cycles; i++) {
+//        __NOP();
+//    }
 
     taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
 }
@@ -66,7 +80,7 @@ uint16_t pec15(uint8_t *data, uint16_t len) {
 }
 
 uint32_t get_timestamp(void) {
-    return 0;
+    return xTaskGetTickCount();
 }
 
 
@@ -78,7 +92,7 @@ int16_t adc_readings_to_deciamps(uint32_t adc_plus, uint32_t adc_minus) {
     return diff / current_sense_to_deciamps;
 }
 
-#define volt_sense_to_volts 8.37
+#define volt_sense_to_volts 5.84
 
 int16_t adc_readings_to_volt_delta(uint32_t adc_vcar, uint32_t adc_vbat) {
     int16_t diff = adc_vbat - adc_vcar;

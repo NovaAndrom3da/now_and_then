@@ -90,8 +90,14 @@ const osThreadAttr_t task_adc_attributes = {
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
+
+[[noreturn]]
+
 extern void start_task_ltc(void *argument);
 extern void start_task_main(void *argument);
+
+[[noreturn]]
+
 extern void start_task_can_bus(void *argument);
 extern void start_task_adc(void *argument);
 

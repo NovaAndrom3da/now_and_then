@@ -11,7 +11,11 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_can.h"
 
-_Noreturn void start_task_can_bus(void *argument);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+[[noreturn]] void start_task_can_bus(void *argument);
 
 void setup_can_bus_task(void);
 
@@ -34,5 +38,9 @@ typedef struct {
 extern QueueHandle_t CAN_rx_Q;
 
 #define CAN_rx_Q_size 50
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //NOW_AND_THEN_TASK_CAN_BUS_H

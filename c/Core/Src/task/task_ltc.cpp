@@ -19,9 +19,31 @@
 QueueHandle_t ltc_spi_tx_Q;
 QueueHandle_t ltc_spi_rx_Q;
 
+QueueHandle_t balance_cmd_Q;
+
+void send_start_balance_cmd(void) {
+    if (balance_cmd_Q == NULL) {
+        return;
+    }
+    ltc_balance_cmd_t cmd = {0};
+    cmd.do_balance = true;
+    xQueueOverwrite(balance_cmd_Q, &cmd);
+}
+
+void send_stop_balance_cmd(void) {
+    if (balance_cmd_Q == NULL) {
+        return;
+    }
+    ltc_balance_cmd_t cmd = {0};
+    cmd.do_balance = false;
+    xQueueOverwrite(balance_cmd_Q, &cmd);
+}
+
 void task_ltc_setup(void) {
     ltc_spi_tx_Q = xQueueCreate(1, sizeof(ltc_spi_tx_request_t));
     ltc_spi_rx_Q = xQueueCreate(1, sizeof(ltc_spi_rx_t));
+
+    balance_cmd_Q = xQueueCreate(1, sizeof(ltc_balance_cmd_t));
 }
 
 #define temp_measure_interval_ms 2500
@@ -34,7 +56,7 @@ uint8_t mux_state_cmd = 0;
 
 #define balance_delay_ms 2000
 
-CAN_MSG_BMS_status_1_T m_status_can_msg = { 0 };
+CAN_MSG_BMS_status_1_T m_status_can_msg = {0};
 
 [[noreturn]] void start_task_ltc(void *argument) {
 
@@ -44,7 +66,7 @@ CAN_MSG_BMS_status_1_T m_status_can_msg = { 0 };
     uint8_t led_state = 0;
 
     bool need_balance = false;
-    bool want_balance = true;
+    bool want_balance = false;
 
     TickType_t last_wake = xTaskGetTickCount();
 
@@ -67,6 +89,13 @@ CAN_MSG_BMS_status_1_T m_status_can_msg = { 0 };
         send_can_msg(CAN_ID_BMS_status_1, &m_status_can_msg, sizeof(CAN_MSG_BMS_status_1_T));
 
         // step 2: calculate desired balancing
+        if (balance_cmd_Q != NULL) {
+            set_led_4(true);
+            ltc_balance_cmd_t want_balance_cmd = {0};
+            xQueuePeek(balance_cmd_Q, &want_balance_cmd, 0);
+            want_balance = want_balance_cmd.do_balance;
+        }
+
         uint16_t pack_lowest_cell_volt = 0xffff;
         uint16_t pack_highest_cell_volt = 0x0;
         uint16_t segment_lowest_volt;

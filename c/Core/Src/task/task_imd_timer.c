@@ -26,7 +26,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
             m.duty_cycle = (HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1) * 100) / uwIC2Value;
             m.frequency = (HAL_RCC_GetHCLKFreq() / 2) / uwIC2Value;
 
-            xQueueSendToFrontFromISR(IMD_Q, &m, NULL);
+            xQueueOverwriteFromISR(IMD_Q, &m, NULL);
         } else {
         }
     }

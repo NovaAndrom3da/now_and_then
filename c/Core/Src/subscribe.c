@@ -18,6 +18,9 @@ uint32_t VCU_pedals_rx_time;
 CAN_MSG_VCU_switches_T m_CAN_MSG_VCU_switches;
 uint32_t VCU_switches_rx_time;
 
+CAN_MSG_charger_control_T m_CAN_MSG_charger_control;
+uint32_t charger_control_rx_time;
+
 void eat_new_data(CAN_rx_t* recv)
 {
 	void* dest = 0;
@@ -32,6 +35,11 @@ void eat_new_data(CAN_rx_t* recv)
 	{
 		dest = &m_CAN_MSG_VCU_switches;
 		time_address = &VCU_switches_rx_time;
+	}
+	else if (recv->header.ExtId == CAN_ID_charger_control)
+	{
+		dest = &m_CAN_MSG_charger_control;
+		time_address = &charger_control_rx_time;
 	}
 
 	if (dest != 0) {

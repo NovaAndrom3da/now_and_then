@@ -61,6 +61,10 @@ class CanNode(yaml.YAMLObject):
         header_f.write("#ifndef {0}\n"
                        "#define {0}\n".format(include_guard_name))
         header_f.write("\n")
+        # header_f.write("#ifdef __cplusplus\n"
+        #         "extern \"C\" {\n"
+        #         "#endif\n")
+        # header_f.write("\n")
         header_f.write("#include <stdint.h>\n"
                        "#include <stdbool.h>\n"
                        "#include \"stm32f4xx_hal.h\"\n"
@@ -102,6 +106,10 @@ class CanNode(yaml.YAMLObject):
             header_f.write("\n")
             source_f.write("\n")
 
+        # header_f.write("#ifdef __cplusplus\n"
+        #         "}\n"
+        #         "#endif\n")
+        # header_f.write("\n")
         header_f.write("#endif\n")
 
         source_f.write("void eat_new_data(CAN_rx_t* recv)\n"

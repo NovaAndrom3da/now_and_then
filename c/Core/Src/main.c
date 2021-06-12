@@ -18,6 +18,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+#include <task/task_ltc.h>
 #include "main.h"
 #include "cmsis_os.h"
 #include "adc.h"
@@ -103,6 +104,7 @@ int main(void)
     create_IMD_queue();
     TIM2_start_capture();
     setup_can_bus_task();
+    task_ltc_setup();
   /* USER CODE END 2 */
 
   /* Init scheduler */

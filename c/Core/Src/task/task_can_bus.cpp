@@ -13,10 +13,10 @@
 QueueHandle_t CAN_tx_Q;
 QueueHandle_t CAN_rx_Q;
 
-HAL_StatusTypeDef stat = 0;
+HAL_StatusTypeDef stat = HAL_OK;
 uint32_t mailbox = 0;
 
-_Noreturn void start_task_can_bus(void *argument) {
+[[noreturn]] void start_task_can_bus(void *argument) {
     CAN_FilterTypeDef filter;
     filter.FilterActivation = CAN_FILTER_ENABLE;
     filter.FilterBank = 0;
@@ -75,7 +75,7 @@ BaseType_t send_can_msg(uint32_t msg_id, void *data, uint8_t data_len) {
     req.header.IDE = CAN_ID_EXT;
     req.header.RTR = CAN_RTR_DATA;
     req.header.DLC = data_len;
-    req.header.TransmitGlobalTime = false;
+    req.header.TransmitGlobalTime = DISABLE;
     memcpy(&req.data, data, data_len);
 
     return xQueueSend(CAN_tx_Q, &req, 1);

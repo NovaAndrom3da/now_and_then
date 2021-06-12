@@ -7,6 +7,10 @@
 
 #include "stm32f4xx_hal_adc.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern QueueHandle_t ADC_Q;
 
 typedef struct {
@@ -16,6 +20,10 @@ typedef struct {
     uint32_t current_minus;
 } ADC_message;
 
-_Noreturn void start_task_adc(void *argument);
+extern "C" [[noreturn]] void start_task_adc(void *argument);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //NOW_AND_THEN_TASK_ADC_H
